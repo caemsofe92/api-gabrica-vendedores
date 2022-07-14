@@ -7,6 +7,7 @@ dotenv.config();
 
 var indexRouter = require("./routes/index");
 var getHome = require("./routes/get-home");
+var getByEntity = require("./routes/get-by-entity");
 
 
 var app = express();
@@ -17,6 +18,7 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 app.use("/", indexRouter);
 app.use("/get-home", getHome);
+app.use("/get-by-entity", getByEntity);
 
 app.use(function (req, res, next) {
   next(createError(404));

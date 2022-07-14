@@ -1,6 +1,6 @@
 let express = require("express");
 let router = express.Router();
-const client = require("../bin/redis-client");
+// const client = require("../bin/redis-client");
 const axios = require("axios");
 
 router.post("/", async (req, res) => {
