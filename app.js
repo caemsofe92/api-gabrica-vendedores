@@ -9,6 +9,7 @@ var indexRouter = require("./routes/index");
 var getHome = require("./routes/get-home");
 var getByEntity = require("./routes/get-by-entity");
 var checkConnection = require("./routes/check-connection");
+var getProducts = require("./routes/get-products");
 
 var app = express();
 app.use(compression());
@@ -20,6 +21,7 @@ app.use("/", indexRouter);
 app.use("/get-home", getHome);
 app.use("/get-by-entity", getByEntity);
 app.use("/check-connection", checkConnection);
+app.use("/get-products", getProducts);
 
 app.use(function (req, res, next) {
   next(createError(404));
