@@ -14,6 +14,7 @@ router.post("/", async (req, res) => {
         const entity = req.query.entity || (req.body && req.body.entity);
         const refresh = req.query.refresh || (req.body && req.body.refresh);
         const userEmail = req.query.userEmail || (req.body && req.body.userEmail);
+        const testMode = req.query.testMode || (req.body && req.body.testMode);
         const environment =
             req.query.environment || (req.body && req.body.environment);
 
@@ -39,12 +40,12 @@ router.post("/", async (req, res) => {
         if (!client.isOpen) client.connect();
 
         if (!refresh) {
-            const userReply = await client.get(entity + userEmail);
-            if (userReply)
+            const data = await client.get(entity + userEmail);
+            if (data)
                 return res.json({
                     result: true,
                     message: "OK",
-                    response: JSON.parse(userReply),
+                    response: JSON.parse(data),
                 });
         }
 
@@ -77,10 +78,7 @@ router.post("/", async (req, res) => {
                 EX: 3599,
             });
         }
-
-        const topQuery = req.query.top || (req.body && req.body.top);
-        const top = !topQuery || topQuery.length === 0 ? 5 : topQuery;
-
+        
         const filters = req.query.filters || (req.body && req.body.filters) ? req.body.filters : {};
         const filterItems = Object.keys(filters);
         const filterDetail = [];
@@ -93,19 +91,16 @@ router.post("/", async (req, res) => {
         const fieldsList = req.query.fields || (req.body && req.body.fields);
         const fields = fieldsList !== null && fieldsList !== undefined ? '&$select=' + fieldsList.toString() : '';
 
-        let urlRequest = `${tenant}/data/${entity}?$format=application/json;odata.metadata=none&cross-company=true&$top=${top}${fields}&$count=true`;
+        let urlRequest = `${tenant}/data/${entity}?$format=application/json;odata.metadata=none&cross-company=true&${fields}${testMode ? "$top=5" : ""}&$count=true`;
         axios.get(
             urlRequest,
             { headers: { Authorization: "Bearer " + token } }
         ).then(response => {
             const data = {
-                result: true,
-                top,
                 entity,
                 filters,
                 filterDetailString,
                 fields: fieldsList,
-                message: "OK",
                 count: response.data["@odata.count"],
                 data: response.data.value
             };
@@ -114,7 +109,7 @@ router.post("/", async (req, res) => {
                 EX: 3599,
             });
 
-            return res.json(data);
+            return res.json({ result: true, message: "OK", response: data });
         }).catch(e => {
             return res.status(500).json({
                 result: false,

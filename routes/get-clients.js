@@ -99,33 +99,11 @@ router.post("/", async (req, res) => {
             { headers: { Authorization: "Bearer " + token } }
         );
 
-        const selectEntity2Fields = "&$select=PartyNumber,Description,Address,Street,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE";
+        const selectEntity2Fields = "&$select=PartyNumber,Description,Address,Street,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE,DMGBSalesDistrictId_PE";
         const Entity2 = axios.get(
             `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none$&$count=true&cross-company=true${selectEntity2Fields}${testMode ? "&$top=5" : ""}`,
             { headers: { Authorization: "Bearer " + token } }
         );
-
-        // const Entity3 = axios.get(
-        //     `${tenant}/data/SRF_HSEDiagnosticLine?$format=application/json;odata.metadata=none&cross-company=true${userCompany ? `&$filter=dataAreaId eq '${userCompany}'` : ""
-        //     }`,
-        //     { headers: { Authorization: "Bearer " + token } }
-        // );
-        // const Entity4 = axios.get(
-        //     `${tenant}/data/SRF_HSEComplianceEvidencesEntity?$format=application/json;odata.metadata=none&cross-company=true${userCompany ? `&$filter=dataAreaId eq '${userCompany}'` : ""
-        //     }`,
-        //     { headers: { Authorization: "Bearer " + token } }
-        // );
-        // const Entity5 = axios.get(
-        //     `${tenant}/data/SRF_HSEImprovementOpportunities?$format=application/json;odata.metadata=none&cross-company=true&$select=Description,SRF_HSEIdImprovementOpportunities,RefRecId&$filter=${userCompany ? `dataAreaId eq '${userCompany}' and ` : ""
-        //     }RefTableId eq 17070`,
-        //     { headers: { Authorization: "Bearer " + token } }
-        // );
-
-        // const Entity6 = axios.get(
-        //     `${tenant}/data/SRF_DocuRef?$format=application/json;odata.metadata=none&cross-company=true&$select=OriginalFileName,RefRecId&$filter=${userCompany ? `RefCompanyId eq '${userCompany}' and ` : ""
-        //     }RefTableId eq 17070 and TypeId eq 'File' and OriginalFileName eq '*hseqdiagnosticimage*'`,
-        //     { headers: { Authorization: "Bearer " + token } }
-        // );
 
         await axios
             .all([Entity1, Entity2])
@@ -162,75 +140,7 @@ router.post("/", async (req, res) => {
                 }
             });
 
-        // await axios
-        //     .all([Entity1, Entity2, Entity3, Entity4, Entity5, Entity6])
-        //     .then(
-        //         axios.spread(async (...responses) => {
-        //             const SRF_HSEDiagnosticEntity = responses[1].data.value;
-
-        //             let SRF_HSEDiagnosticIds = responses[1].data.value.map(
-        //                 (item) => item.RecId1
-        //             );
-        //             const _SRF_HSEDiagnosticLine = responses[2].data;
-        //             const SRF_HSEApprovalLineEntity = responses[0].data.value;
-        //             let SRF_HSEDiagnosticLineIds = [];
-        //             let SRF_HSEDiagnosticLine = _SRF_HSEDiagnosticLine.value.filter(
-        //                 (item) => SRF_HSEDiagnosticIds.includes(item.RefRecId)
-        //             );
-        //             SRF_HSEDiagnosticLine = SRF_HSEDiagnosticLine.map((item) => {
-        //                 const approvalList = SRF_HSEApprovalLineEntity.filter(
-        //                     (approvalElement) =>
-        //                         approvalElement.IdApproval === item.IdApproval &&
-        //                         approvalElement.dataAreaId === item.dataAreaId
-        //                 ).map((approvalElement) => approvalElement.Score);
-        //                 SRF_HSEDiagnosticLineIds.push(item.RecId1);
-        //                 return {
-        //                     ...item,
-        //                     MaxScore: Math.max(...approvalList),
-        //                     MinScore: Math.min(...approvalList),
-        //                 };
-        //             });
-
-        //             const SRF_HSEImprovementOpportunitiesDiagnostic =
-        //                 responses[4].data.value.filter((item) =>
-        //                     SRF_HSEDiagnosticLineIds.includes(item.RefRecId)
-        //                 );
-
-        //             const SRF_DocuRefDiagnostic = responses[5].data.value.filter((item) =>
-        //                 SRF_HSEDiagnosticLineIds.includes(item.RefRecId)
-        //             );
-
-        //             const reply = {
-        //                 SRF_HSEApprovalLineEntity,
-        //                 SRF_HSEComplianceEvidencesEntity: responses[3].data.value,
-        //                 SRF_HSEDiagnosticEntityCount: responses[1].data["@odata.count"],
-        //                 SRF_HSEDiagnosticEntity,
-        //                 SRF_HSEDiagnosticLine,
-        //                 SRF_HSEImprovementOpportunitiesDiagnostic,
-        //                 SRF_DocuRefDiagnostic,
-        //             };
-
-        //             await client.set(entity + userCompany, JSON.stringify(reply), {
-        //                 EX: 86400,
-        //             });
-        //             return res.json({ result: true, message: "OK", response: reply });
-        //         })
-        //     )
-        //     .catch(function (error) {
-        //         if (
-        //             error.response &&
-        //             error.response.data &&
-        //             error.response.data.error &&
-        //             error.response.data.error.innererror &&
-        //             error.response.data.error.innererror.message
-        //         ) {
-        //             throw new Error(error.response.data.error.innererror.message);
-        //         } else if (error.request) {
-        //             throw new Error(error.request);
-        //         } else {
-        //             throw new Error("Error", error.message);
-        //         }
-        //     });
+        
     } catch (error) {
         return res.status(500).json({
             result: false,
