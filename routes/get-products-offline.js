@@ -2,8 +2,6 @@ let express = require("express");
 let router = express.Router();
 const client = require("../bin/redis-client");
 const axios = require("axios");
-const moment = require("moment");
-require("moment/locale/es");
 
 router.post("/", async (req, res) => {
   try {
@@ -22,14 +20,6 @@ router.post("/", async (req, res) => {
       req.query.company || (req.body && req.body.company);
     const environment =
       req.query.environment || (req.body && req.body.environment);
-    const siteId =
-      req.query.siteId || (req.body && req.body.siteId);
-    const locationId =
-      req.query.locationId || (req.body && req.body.locationId);
-    const groupId =
-      req.query.groupId || (req.body && req.body.groupId);
-      
-  
 
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
@@ -139,13 +129,12 @@ router.post("/", async (req, res) => {
       }&cross-company=true`,
       { headers: { Authorization: "Bearer " + token } }
     );
-
-    const currentDate = moment().format(); 
-    
     const Entity8 = axios.get(
-      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
+      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,FromDate,ToDate,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${company}' and ToDate gt ${currentDate} and FromDate lt ${currentDate}`,
+      }&cross-company=true${
+        company ? `&$filter=dataAreaId eq '${company}'` : ""
+      }`,
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity9 = axios.get(
@@ -157,19 +146,21 @@ router.post("/", async (req, res) => {
     const Entity10 = axios.get(
       `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,GroupId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${company}'${
-        groupId ? ` and GroupId eq '${groupId}'` : ""
+      }&cross-company=true${
+        company ? `&$filter=dataAreaId eq '${company}'` : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
     ); 
     const Entity11 = axios.get(
-      `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,AvailOrdered,Ordered,ItemId${
+      `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,ClosedQty,InventSiteId,InventLocationId,AvailOrdered,Ordered,ItemId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${company}'${
-        siteId && locationId ? ` and InventSiteId eq '${siteId}' and InventLocationId eq '${locationId}' and ClosedQty eq Microsoft.Dynamics.DataEntities.NoYes'No'` : ""
+      }&cross-company=true${
+        company ? `&$filter=dataAreaId eq '${company}'` : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
     );
+
+      $filter=
 
     await axios
       .all([
@@ -187,12 +178,7 @@ router.post("/", async (req, res) => {
       ])
       .then(
         axios.spread(async (...responses) => {
-          //1. 263754 14.03s 4.17 MB
-          //2. 207504 10.59s 3.33 MB
-          //3. 194379 10.31s 3.07 MB
-          //4. 158249 8.00s 2.37 MB
-          //5. 137879 6.99s 1.98 MB
-
+          //263754 14.03 s 4.17 MB
           const reply = {
             RetailEcoResProductTranslation: responses[0].data.value, //9738 3.90s 214.68 KB - 5         
             ReleasedProductsV2: responses[1].data.value, //6272 4.05s 143.95 KB - 7
