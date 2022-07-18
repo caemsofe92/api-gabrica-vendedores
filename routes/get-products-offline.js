@@ -2,6 +2,8 @@ let express = require("express");
 let router = express.Router();
 const client = require("../bin/redis-client");
 const axios = require("axios");
+const moment = require("moment");
+require("moment/locale/es");
 
 router.post("/", async (req, res) => {
   try {
@@ -11,7 +13,6 @@ router.post("/", async (req, res) => {
       req.query.clientSecret || (req.body && req.body.clientSecret);
     const tenant = req.query.tenant || (req.body && req.body.tenant);
     const entity = req.query.entity || (req.body && req.body.entity);
-    const offset = req.query.offset || (req.body && req.body.offset);
     const numberOfElements =
       req.query.numberOfElements || (req.body && req.body.numberOfElements);
     const isTest = req.query.isTest || (req.body && req.body.isTest);
@@ -20,7 +21,8 @@ router.post("/", async (req, res) => {
       req.query.company || (req.body && req.body.company);
     const environment =
       req.query.environment || (req.body && req.body.environment);
-
+      
+  
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
 
@@ -82,115 +84,52 @@ router.post("/", async (req, res) => {
       });
     }
 
+    const currentDate = moment().format(); 
+    
     const Entity1 = axios.get(
-      `${tenant}/data/RetailEcoResProductTranslation?$format=application/json;odata.metadata=none&$select=EcoResProduct_DisplayProductNumber,Product,Name${
+      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true`,
+      }&cross-company=true&$filter=dataAreaId eq '${company}' and ToDate gt ${currentDate} and FromDate lt ${currentDate}`,
       { headers: { Authorization: "Bearer " + token } }
     );
-
     const Entity2 = axios.get(
-      `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true${
-        company ? `&$filter=dataAreaId eq '${company}'` : ""
-      }`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity3 = axios.get(
-      `${tenant}/data/InventitemsalessetupsBI?$format=application/json;odata.metadata=none&$select=ItemId,Stopped${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true${
-        company ? `&$filter=dataAreaId eq '${company}'` : ""
-      }`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity4 = axios.get(
-      `${tenant}/data/RetailEcoResCategoryHierarchy?$format=application/json;odata.metadata=none&$select=Name,AxRecId${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity5 = axios.get(
-      `${tenant}/data/EcoresproductcategoriesBI?$format=application/json;odata.metadata=none&$select=Product,Category${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity6 = axios.get(
-      `${tenant}/data/ProductCategories?$format=application/json;odata.metadata=none&$select=CategoryRecordId,ProductCategoryHierarchyName,CategoryName${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity7 = axios.get(
-      `${tenant}/data/RetailEcoResCategory?$format=application/json;odata.metadata=none&$select=Name,CategoryHierarchy,EcoResCategory1_Name,Level${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity8 = axios.get(
-      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,FromDate,ToDate,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true${
-        company ? `&$filter=dataAreaId eq '${company}'` : ""
-      }`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity9 = axios.get(
-      `${tenant}/data/UnitOfMeasureTranslations?$format=application/json;odata.metadata=none&$select=UnitSymbol,TranslatedDescription${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity10 = axios.get(
       `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,GroupId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true${
-        company ? `&$filter=dataAreaId eq '${company}'` : ""
-      }`,
+      }&cross-company=true&$filter=dataAreaId eq '${company}'`,
       { headers: { Authorization: "Bearer " + token } }
     ); 
-    const Entity11 = axios.get(
-      `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,ClosedQty,InventSiteId,InventLocationId,AvailOrdered,Ordered,ItemId${
+    const Entity3 = axios.get(
+      `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,AvailOrdered,Ordered,ItemId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true${
-        company ? `&$filter=dataAreaId eq '${company}'` : ""
-      }`,
+      }&cross-company=true&$filter=dataAreaId eq '${company}' and ClosedQty eq Microsoft.Dynamics.DataEntities.NoYes'No'`,
       { headers: { Authorization: "Bearer " + token } }
     );
-
-      $filter=
 
     await axios
       .all([
         Entity1,
         Entity2,
-        Entity3,
-        Entity4,
-        Entity5,
-        Entity6,
-        Entity7,
-        Entity8,
-        Entity9,
-        Entity10,
-        Entity11
+        Entity3
       ])
       .then(
         axios.spread(async (...responses) => {
-          //263754 14.03 s 4.17 MB
+          //1. 263754 14.03s 4.17 MB
+          //2. 207504 10.59s 3.33 MB
+          //3. 194379 10.31s 3.07 MB
+          //4. 158249 8.00s 2.37 MB
+          //5. 137879 6.99s 1.98 MB
+
           const reply = {
-            RetailEcoResProductTranslation: responses[0].data.value, //9738 3.90s 214.68 KB - 5         
-            ReleasedProductsV2: responses[1].data.value, //6272 4.05s 143.95 KB - 7
-            InventitemsalessetupsBI: responses[2].data.value, //4184 2.29s 38.02 KB - 9
-            RetailEcoResCategoryHierarchy: responses[3].data.value, //112 1098ms 1.47 KB - 11            
-            EcoresproductcategoriesBI: responses[4].data.value, //40008 8.82s 439.81 KB - 4
-            ProductCategories: responses[5].data.value, //5538 3.38s 115.14 KB - 8
-            RetailEcoResCategory: responses[6].data.value, //12926 4.16s 201.59 KB - 6
-            PricedisctablesBI: responses[7].data.value, //62248 10.92s 1.12 MB - 2
-            UnitOfMeasureTranslations: responses[8].data.value, //172 1196ms 2.73 KB - 10
-            ComboTables: responses[9].data.value, //22608 6.78s 442.54 KB - 3
-            InventsumsBI: responses[10].data.value //100008 12.89s 1.49 MB - 1
+            PricedisctablesBI: responses[0].data.value, //62248 10.92s 1.12 MB - 2
+            ComboTables: responses[1].data.value, //22608 6.78s 442.54 KB - 3
+            ComboLines: [{
+              ItemId: "",
+              ItemName: "",
+              Qty: 1,
+              Required: false,
+              ComboId: ""
+            }],
+            InventsumsBI: responses[2].data.value //100008 12.89s 1.49 MB - 1
           };
 
           await client.set(entity + company, JSON.stringify(reply), {

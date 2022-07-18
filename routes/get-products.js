@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
     if (!client.isOpen) client.connect();
 
     if (!refresh) {
-      const mainReply = await client.get(entity + company);
+      const mainReply = await client.get(entity + company + siteId + locationId + groupId);
       if (mainReply)
         return res.json({
           result: true,
@@ -144,7 +144,7 @@ router.post("/", async (req, res) => {
             InventsumsBI: responses[2].data.value //100008 12.89s 1.49 MB - 1
           };
 
-          await client.set(entity + company, JSON.stringify(reply), {
+          await client.set(entity + company + siteId + locationId + groupId, JSON.stringify(reply), {
             EX: 86400,
           });
           return res.json({ result: true, message: "OK", response: reply });

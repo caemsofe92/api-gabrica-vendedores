@@ -10,6 +10,7 @@ var getHome = require("./routes/get-home");
 var getByEntity = require("./routes/get-by-entity");
 var checkConnection = require("./routes/check-connection");
 var getProducts = require("./routes/get-products");
+var getProductsOffline = require("./routes/get-products-offline");
 var getClients = require("./routes/get-clients");
 
 var app = express();
@@ -23,6 +24,7 @@ app.use("/get-home", getHome);
 app.use("/get-by-entity", getByEntity);
 app.use("/check-connection", checkConnection);
 app.use("/get-products", getProducts);
+app.use("/get-products-offline", getProductsOffline);
 app.use("/get-clients", getClients);
 
 app.use(function (req, res, next) {
