@@ -12,6 +12,7 @@ var checkConnection = require("./routes/check-connection");
 var getProducts = require("./routes/get-products");
 var getProductsOffline = require("./routes/get-products-offline");
 var getClients = require("./routes/get-clients");
+var getSalesOrders = require("./routes/get-sales-orders");
 
 var app = express();
 app.use(compression());
@@ -26,6 +27,7 @@ app.use("/check-connection", checkConnection);
 app.use("/get-products", getProducts);
 app.use("/get-products-offline", getProductsOffline);
 app.use("/get-clients", getClients);
+app.use("/get-sales-orders", getSalesOrders);
 
 app.use(function (req, res, next) {
   next(createError(404));
