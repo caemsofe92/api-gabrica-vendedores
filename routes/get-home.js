@@ -11,6 +11,9 @@ router.post("/", async (req, res) => {
   const tenant = req.query.tenant || (req.body && req.body.tenant);
   const entity = req.query.entity || (req.body && req.body.entity);
   const refresh = req.query.refresh || (req.body && req.body.refresh);
+  const numberOfElements =
+    req.query.numberOfElements || (req.body && req.body.numberOfElements);
+  const isTest = req.query.isTest || (req.body && req.body.isTest);
   const userEmail = req.query.userEmail || (req.body && req.body.userEmail);
   const environment =
     req.query.environment || (req.body && req.body.environment);
@@ -125,9 +128,84 @@ router.post("/", async (req, res) => {
     `${tenant}/data/Companies?$format=application/json;odata.metadata=none&cross-company=true&$select=DataArea,Name`,
     { headers: { Authorization: "Bearer " + token } }
   );
+  const Entity6 = axios.get(
+    `${tenant}/data/RetailEcoResProductTranslation?$format=application/json;odata.metadata=none&$select=EcoResProduct_DisplayProductNumber,Product,Name${
+      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+    }&cross-company=true`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
+  const Entity7 = axios.get(
+    `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol${
+      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+    }&cross-company=true${
+      mainReply.SystemUser && mainReply.SystemUser.Company
+        ? mainReply.SystemUser.Company
+        : null
+        ? `&$filter=dataAreaId eq '${
+            mainReply.SystemUser && mainReply.SystemUser.Company
+              ? mainReply.SystemUser.Company
+              : null
+          }'`
+        : ""
+    }`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
+  const Entity8 = axios.get(
+    `${tenant}/data/InventitemsalessetupsBI?$format=application/json;odata.metadata=none&$select=ItemId,Stopped${
+      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+    }&cross-company=true${
+      mainReply.SystemUser && mainReply.SystemUser.Company
+        ? mainReply.SystemUser.Company
+        : null
+        ? `&$filter=dataAreaId eq '${
+            mainReply.SystemUser && mainReply.SystemUser.Company
+              ? mainReply.SystemUser.Company
+              : null
+          }'`
+        : ""
+    }`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
+  const Entity9 = axios.get(
+    `${tenant}/data/RetailEcoResCategoryHierarchy?$format=application/json;odata.metadata=none&$select=Name,AxRecId${
+      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+    }&cross-company=true`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
+  const Entity10 = axios.get(
+    `${tenant}/data/EcoresproductcategoriesBI?$format=application/json;odata.metadata=none&$select=Product,Category${
+      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+    }&cross-company=true`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
+  const Entity11 = axios.get(
+    `${tenant}/data/RetailEcoResCategory?$format=application/json;odata.metadata=none&$select=EcoResCategory1_Name,CategoryHierarchy,AxRecId${
+      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+    }&cross-company=true&$filter=Level eq 1`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
+  const Entity12 = axios.get(
+    `${tenant}/data/UnitOfMeasureTranslations?$format=application/json;odata.metadata=none&$select=UnitSymbol,TranslatedDescription${
+      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+    }&cross-company=true`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
+
+  let userReply;
 
   await axios
-    .all([Entity3, Entity4, Entity5])
+    .all([
+      Entity3,
+      Entity4,
+      Entity5,
+      Entity6,
+      Entity7,
+      Entity8,
+      Entity9,
+      Entity10,
+      Entity11,
+      Entity12,
+    ])
     .then(
       axios.spread(async (...responses) => {
         const Roles = responses[0].data.value.map((Rol) => {
@@ -135,9 +213,83 @@ router.post("/", async (req, res) => {
         });
         const SalesUnitMember = responses[1].data.value[0];
         const Companies = responses[2].data.value;
-        const userReply = {
+
+        let RetailEcoResProductTranslation = responses[3].data.value;
+        const ReleasedProductsV2 = responses[4].data.value;
+        const InventitemsalessetupsBI = responses[5].data.value;
+        const RetailEcoResCategoryHierarchy = responses[6].data.value;
+        const EcoresproductcategoriesBI = responses[7].data.value;
+        const RetailEcoResCategory = responses[8].data.value;
+        const UnitOfMeasureTranslations = responses[9].data.value;
+
+        for (let i = 0; i < RetailEcoResProductTranslation.length; i++) {
+          const item1 = RetailEcoResProductTranslation[i];
+
+          for (let j = 0; j < ReleasedProductsV2.length; j++) {
+            const item2 = ReleasedProductsV2[j];
+            if (item1.EcoResProduct_DisplayProductNumber === item2.ItemNumber) {
+              RetailEcoResProductTranslation[i] = {
+                ...RetailEcoResProductTranslation[i],
+                SalesLineDiscountProductGroupCode:
+                  item2.SalesLineDiscountProductGroupCode,
+                SalesSalesTaxItemGroupCode: item2.SalesSalesTaxItemGroupCode,
+                InventoryUnitSymbol: item2.InventoryUnitSymbol,
+              };
+              break;
+            }
+          }
+
+          for (let j = 0; j < InventitemsalessetupsBI.length; j++) {
+            const item2 = InventitemsalessetupsBI[j];
+            if (item1.EcoResProduct_DisplayProductNumber === item2.ItemId) {
+              RetailEcoResProductTranslation[i] = {
+                ...RetailEcoResProductTranslation[i],
+                Stopped: item2.Stopped,
+              };
+              break;
+            }
+          }
+
+          let productCategories = [];
+
+          for (let j = 0; j < EcoresproductcategoriesBI.length; j++) {
+            const item2 = EcoresproductcategoriesBI[j];
+            if (item1.Product === item2.Product) {
+              productCategories.push(item2);
+            }
+          }
+
+          RetailEcoResProductTranslation[i] = {
+            ...RetailEcoResProductTranslation[i],
+            productCategories
+          };
+        }
+
+        for (let i = 0; i < RetailEcoResCategoryHierarchy.length; i++) {
+          const item1 = RetailEcoResCategoryHierarchy[i];
+
+          let values = [];
+          for (let j = 0; j < RetailEcoResCategory.length; j++) {
+            const item2 = RetailEcoResCategory[j];
+            if ((item1.AxRecId === item2.CategoryHierarchy)) {
+              values.push({
+                EcoResCategory1_Name: item2.EcoResCategory1_Name,
+                AxRecId: item2.AxRecId
+                });
+            }
+          }
+          RetailEcoResCategoryHierarchy[i] = {
+            ...RetailEcoResCategoryHierarchy[i],
+            values,
+          };
+        }
+
+        userReply = {
           Companies,
           Roles,
+          RetailEcoResProductTranslation,
+          RetailEcoResCategoryHierarchy,
+          UnitOfMeasureTranslations,
           UserId:
             mainReply.SystemUser && mainReply.SystemUser.UserID
               ? mainReply.SystemUser.UserID
@@ -187,12 +339,103 @@ router.post("/", async (req, res) => {
               ? SalesUnitMember.SalesManager
               : null,
         };
+      })
+    )
+    .catch(function (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.error &&
+        error.response.data.error.innererror &&
+        error.response.data.error.innererror.message
+      ) {
+        throw new Error(error.response.data.error.innererror.message);
+      } else if (error.request) {
+        throw new Error(error.request);
+      } else {
+        console.log(error);
+        throw new Error("Error", error.message);
+      }
+    });
 
-        await client.set(entity + userEmail, JSON.stringify(userReply), {
-          EX: 84600,
-        });
+  const selectEntityFields =
+    "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,NameAlias,OrganizationName,SalesTaxGroup";
+  const Entity13 = axios.get(
+    `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${userReply.SalesUnitId}' and dataAreaId eq '${userReply.Company}'${selectEntityFields}`,
+    { headers: { Authorization: "Bearer " + token } }
+  );
 
-        return res.json({ result: true, message: "OK", response: userReply });
+  const selectEntity2Fields =
+    "&$select=PartyNumber,Description,Address,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE";
+
+  await axios
+    .all([Entity13])
+    .then(
+      axios.spread(async (...responses) => {
+        const GAB_Customers = responses[0].data.value;
+
+        let PartyLocationPostalAddressesV2 = [];
+
+        for (let i = 0; i < GAB_Customers.length; i++) {
+          const PartyLocationPostalAddressesV2Item = axios.get(
+            `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=PartyNumber eq '${GAB_Customers[i].PartyNumber}'${selectEntity2Fields}`,
+            { headers: { Authorization: "Bearer " + token } }
+          );
+
+          PartyLocationPostalAddressesV2.push(
+            PartyLocationPostalAddressesV2Item
+          );
+        }
+
+        await axios
+          .all(PartyLocationPostalAddressesV2)
+          .then(
+            axios.spread(async (...responses2) => {
+              let PartyLocationPostalAddresses = [];
+              for (let i = 0; i < responses2.length; i++) {
+                const element = responses2[i];
+                element.data.value.map((item2) =>
+                  PartyLocationPostalAddresses.push(item2)
+                );
+              }
+
+              const customersReply = {
+                ...userReply,
+                GAB_Customers: responses[0].data.value,
+                GAB_CustomersCount: responses[0].data["@odata.count"],
+                PartyLocationPostalAddressesV2: PartyLocationPostalAddresses,
+              };
+
+              await client.set(
+                entity + userEmail,
+                JSON.stringify(customersReply),
+                {
+                  EX: 84600,
+                }
+              );
+
+              return res.json({
+                result: true,
+                message: "OK",
+                response: customersReply,
+              });
+            })
+          )
+          .catch(function (error) {
+            if (
+              error.response &&
+              error.response.data &&
+              error.response.data.error &&
+              error.response.data.error.innererror &&
+              error.response.data.error.innererror.message
+            ) {
+              throw new Error(error.response.data.error.innererror.message);
+            } else if (error.request) {
+              throw new Error(error.request);
+            } else {
+              throw new Error("Error", error.message);
+            }
+          });
       })
     )
     .catch(function (error) {
@@ -210,6 +453,7 @@ router.post("/", async (req, res) => {
         throw new Error("Error", error.message);
       }
     });
+
   try {
   } catch (error) {
     return res.status(500).json({
