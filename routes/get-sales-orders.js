@@ -23,7 +23,7 @@ router.post("/", async (req, res) => {
         const sort = req.query.sort || (req.body && req.body.sort);
         const testMode = req.query.testMode || (req.body && req.body.testMode);
 
-        const salesDistrict = req.query.salesDistrict || (req.body && req.body.salesDistrict);
+        const customer = req.query.customer || (req.body && req.body.customer);
         const company = req.query.company || (req.body && req.body.company);
 
         if (!tenantUrl || tenantUrl.length === 0)
@@ -45,11 +45,11 @@ router.post("/", async (req, res) => {
         if (!environment || environment.length === 0)
             throw new Error("environment is Mandatory");
 
-        if (!salesDistrict || salesDistrict.length === 0)
-            throw new Error("salesDistrict is Mandatory");
-
         if (!company || company.length === 0)
             throw new Error("company is Mandatory");
+
+        if (!customer || customer.length === 0)
+            throw new Error("customer is Mandatory");
 
         if (!client.isOpen) client.connect();
 
@@ -93,15 +93,15 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const selectEntity1Fields = "&$select=PartyNumber,CustomerAccount,DeliveryAddressDescription,PaymentTerms,PartyType,NameAlias,OrganizationName,SalesTaxGroup";
+        const selectEntity1Fields = "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription";
         const Entity1 = axios.get(
-            `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${salesDistrict}' and dataAreaId eq '${company}'${selectEntity1Fields}${testMode ? "&$top=5" : ""}`,
+            `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderingCustomerAccountNumber eq '${customer}'${selectEntity1Fields}${testMode ? "&$top=5" : ""}`,
             { headers: { Authorization: "Bearer " + token } }
         );
 
-        const selectEntity2Fields = "&$select=PartyNumber,Description,Address,Street,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE,DMGBSalesDistrictId_PE";
+        const selectEntity2Fields = "&$select=SalesOrderNumber,SalesUnitSymbol,OrderedInventoryStatusId,ShippingSiteId,DeliveryAddressLocationId,DeliveryTermsId,LineDescription,ShippingWarehouseId,OrderedSalesQuantity,LineAmount,SalesPriceQuantity,SalesPrice,ProductName,DeliveryAddressStreet,DeliveryAddressCountryRegionId,DeliveryAddressDescription,ProductNumber,SalesProductCategoryHierarchyName,SalesProductCategoryName,SalesOrderNumberHeader,CurrencyCode";
         const Entity2 = axios.get(
-            `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none$&$count=true&cross-company=true${selectEntity2Fields}${testMode ? "&$top=5" : ""}`,
+            `${tenant}/data/CDSSalesOrderLinesV2?$format=application/json;odata.metadata=none$&$count=true&cross-company=true&$filter=dataAreaId eq '${company}'${selectEntity2Fields}${testMode ? "&$top=5" : ""}`,
             { headers: { Authorization: "Bearer " + token } }
         );
 
@@ -111,10 +111,10 @@ router.post("/", async (req, res) => {
                 axios.spread(async (...responses) => {
 
                     const reply = {
-                        Customers: responses[0].data.value,
-                        CustomersCount: responses[0].data["@odata.count"],
-                        CustomerAddresses: responses[1].data.value,
-                        CustomerAddressesCount: responses[1].data["@odata.count"],
+                        SalesOrders: responses[0].data.value,
+                        SalesOrdersCount: responses[0].data["@odata.count"],
+                        SalesOrdersLines: responses[1].data.value,
+                        SalesOrdersLinesCount: responses[1].data["@odata.count"]
                     };
 
                     await client.set(entity + userCompany, JSON.stringify(reply), {

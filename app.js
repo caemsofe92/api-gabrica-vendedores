@@ -11,6 +11,7 @@ var getByEntity = require("./routes/get-by-entity");
 var checkConnection = require("./routes/check-connection");
 var getProducts = require("./routes/get-products");
 var getClients = require("./routes/get-clients");
+var getSalesOrders = require("./routes/get-sales-orders");
 
 var app = express();
 app.use(compression());
@@ -24,6 +25,7 @@ app.use("/get-by-entity", getByEntity);
 app.use("/check-connection", checkConnection);
 app.use("/get-products", getProducts);
 app.use("/get-clients", getClients);
+app.use("/get-sales-orders", getSalesOrders);
 
 app.use(function (req, res, next) {
   next(createError(404));
