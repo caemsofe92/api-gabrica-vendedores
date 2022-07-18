@@ -11,20 +11,13 @@ router.post("/", async (req, res) => {
             req.query.clientSecret || (req.body && req.body.clientSecret);
         const tenant = req.query.tenant || (req.body && req.body.tenant);
         const entity = req.query.entity || (req.body && req.body.entity);
-        const offset = req.query.offset || (req.body && req.body.offset);
-        const numberOfElements =
-            req.query.numberOfElements || (req.body && req.body.numberOfElements);
         const refresh = req.query.refresh || (req.body && req.body.refresh);
-        const userCompany =
-            req.query.userCompany || (req.body && req.body.userCompany);
         const environment =
             req.query.environment || (req.body && req.body.environment);
-        const search = req.query.search || (req.body && req.body.search);
-        const sort = req.query.sort || (req.body && req.body.sort);
         const testMode = req.query.testMode || (req.body && req.body.testMode);
+        const userEmail = req.query.userEmail || (req.body && req.body.userEmail);
 
         const customer = req.query.customer || (req.body && req.body.customer);
-        const company = req.query.company || (req.body && req.body.company);
 
         if (!tenantUrl || tenantUrl.length === 0)
             throw new Error("tenantUrl is Mandatory");
@@ -39,14 +32,11 @@ router.post("/", async (req, res) => {
 
         if (!entity || entity.length === 0) throw new Error("entity is Mandatory");
 
-        if (!userCompany || userCompany.length === 0)
-            throw new Error("userCompany is Mandatory");
-
         if (!environment || environment.length === 0)
             throw new Error("environment is Mandatory");
 
-        if (!company || company.length === 0)
-            throw new Error("company is Mandatory");
+        if (!userEmail || userEmail.length === 0)
+            throw new Error("userEmail is Mandatory");
 
         if (!customer || customer.length === 0)
             throw new Error("customer is Mandatory");
@@ -54,7 +44,7 @@ router.post("/", async (req, res) => {
         if (!client.isOpen) client.connect();
 
         if (!refresh) {
-            const mainReply = await client.get(entity + userCompany);
+            const mainReply = await client.get(entity + userEmail);
             if (mainReply)
                 return res.json({
                     result: true,
@@ -100,27 +90,77 @@ router.post("/", async (req, res) => {
         );
 
         const selectEntity2Fields = "&$select=SalesOrderNumber,SalesUnitSymbol,OrderedInventoryStatusId,ShippingSiteId,DeliveryAddressLocationId,DeliveryTermsId,LineDescription,ShippingWarehouseId,OrderedSalesQuantity,LineAmount,SalesPriceQuantity,SalesPrice,ProductName,DeliveryAddressStreet,DeliveryAddressCountryRegionId,DeliveryAddressDescription,ProductNumber,SalesProductCategoryHierarchyName,SalesProductCategoryName,SalesOrderNumberHeader,CurrencyCode";
-        const Entity2 = axios.get(
-            `${tenant}/data/CDSSalesOrderLinesV2?$format=application/json;odata.metadata=none$&$count=true&cross-company=true&$filter=dataAreaId eq '${company}'${selectEntity2Fields}${testMode ? "&$top=5" : ""}`,
-            { headers: { Authorization: "Bearer " + token } }
-        );
 
         await axios
-            .all([Entity1, Entity2])
+            .all([Entity1])
             .then(
                 axios.spread(async (...responses) => {
 
-                    const reply = {
-                        SalesOrders: responses[0].data.value,
-                        SalesOrdersCount: responses[0].data["@odata.count"],
-                        SalesOrdersLines: responses[1].data.value,
-                        SalesOrdersLinesCount: responses[1].data["@odata.count"]
-                    };
+                    const SalesOrderHeaders = responses[0].data.value;
+                    const SalesOrdersCount = responses[0].data["@odata.count"];
+                    let SalesOrderLinesGet = [];
 
-                    await client.set(entity + userCompany, JSON.stringify(reply), {
-                        EX: 86400,
-                    });
-                    return res.json({ result: true, message: "OK", response: reply });
+                    for (let i = 0; i < SalesOrderHeaders.length; i++) {
+                        const SalesOrderLinesItem = axios.get(
+                            `${tenant}/data/CDSSalesOrderLinesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=SalesOrderNumber eq '${SalesOrderHeaders[i].SalesOrderNumber}'${selectEntity2Fields}`,
+                            { headers: { Authorization: "Bearer " + token } }
+                        );
+
+                        SalesOrderLinesGet.push(
+                            SalesOrderLinesItem
+                        );
+                    }
+
+                    await axios
+                        .all(SalesOrderLinesGet)
+                        .then(
+                            axios.spread(async (...responses2) => {
+                                let SalesOrdersLines = [];
+                                for (let i = 0; i < responses2.length; i++) {
+                                    const element = responses2[i];
+                                    element.data.value.map((item2) =>
+                                        SalesOrdersLines.push(item2)
+                                    );
+                                }
+
+                                const salesOrdersReply = {
+                                    SalesOrders: SalesOrderHeaders,
+                                    SalesOrdersCount,
+                                    SalesOrdersLines,
+                                    SalesOrdersLinesCount: SalesOrdersLines.length
+                                };
+
+                                await client.set(
+                                    entity + userEmail,
+                                    JSON.stringify(salesOrdersReply),
+                                    {
+                                        EX: 84600,
+                                    }
+                                );
+
+                                return res.json({
+                                    result: true,
+                                    message: "OK",
+                                    response: salesOrdersReply,
+                                });
+                            })
+                        )
+                        .catch(function (error) {
+                            if (
+                                error.response &&
+                                error.response.data &&
+                                error.response.data.error &&
+                                error.response.data.error.innererror &&
+                                error.response.data.error.innererror.message
+                            ) {
+                                throw new Error(error.response.data.error.innererror.message);
+                            } else if (error.request) {
+                                throw new Error(error.request);
+                            } else {
+                                throw new Error("Error", error.message);
+                            }
+                        });
+
                 })
             )
             .catch(function (error) {
