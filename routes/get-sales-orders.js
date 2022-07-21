@@ -83,7 +83,7 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const selectEntity1Fields = "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription";
+        const selectEntity1Fields = "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription,DeliveryAddressCountryRegionId";
         const Entity1 = axios.get(
             `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderingCustomerAccountNumber eq '${customer}'${selectEntity1Fields}${testMode ? "&$top=5" : ""}`,
             { headers: { Authorization: "Bearer " + token } }
@@ -98,6 +98,7 @@ router.post("/", async (req, res) => {
 
                     const SalesOrderHeaders = responses[0].data.value;
                     const SalesOrdersCount = responses[0].data["@odata.count"];
+                    
                     let SalesOrderLinesGet = [];
 
                     for (let i = 0; i < SalesOrderHeaders.length; i++) {

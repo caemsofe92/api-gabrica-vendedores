@@ -14,14 +14,10 @@ router.post("/", async (req, res) => {
     const tenant = req.query.tenant || (req.body && req.body.tenant);
     const environment =
       req.query.environment || (req.body && req.body.environment);
-    const diagnostic =
-      req.query.diagnostic || (req.body && req.body.diagnostic);
-    const diagnosticLine =
-      req.query.diagnosticLine || (req.body && req.body.diagnosticLine);
-    const improvementOpportunities =
-      req.query.improvementOpportunities ||
-      (req.body && req.body.improvementOpportunities);
-    const evidences = req.query.evidences || (req.body && req.body.evidences);
+    const salesOrder =
+      req.query.salesOrder || (req.body && req.body.salesOrder);
+    const salesOrderLine =
+      req.query.salesOrderLine || (req.body && req.body.salesOrderLine);
     const email = req.query.email || (req.body && req.body.email);
 
     if (!tenantUrl || tenantUrl.length === 0)
@@ -69,17 +65,15 @@ router.post("/", async (req, res) => {
         EX: 3599,
       });
     }
+    /*
+    let _salesOrder;
 
-    let _diagnostic;
-
-    if (diagnostic) {
-      _diagnostic = await axios
+   
+    if (salesOrder) {
+      _salesOrder = await axios
         .patch(
-          `${tenant}/data/DiagnosticNews(RecIdGen=${diagnostic.RecIdGen},dataAreaId='${diagnostic.dataAreaId}')?cross-company=true`,
-          {
-            ...diagnostic,
-            ExecutionDate: moment(diagnostic.ExecutionDate).add(5, "hours"),
-          },
+          `${tenant}/data/SalesOrderHeadersV2(SalesOrderNumber='${salesOrder.SalesOrderNumber}',dataAreaId='${salesOrder.dataAreaId}')?cross-company=true`,
+          salesOrder,
           {
             headers: { Authorization: "Bearer " + token },
           }
@@ -101,195 +95,59 @@ router.post("/", async (req, res) => {
         });
     }
 
-    _diagnostic =
-      _diagnostic && _diagnostic.data === "" ? "Modified" : "Unchanged";
+    _salesOrder =
+      _salesOrder && _salesOrder.data === "" ? "Modified" : "Unchanged";
+    */
+    let _salesOrderLine = [];
 
-    let _diagnosticLine = [];
+    if (salesOrderLine && salesOrderLine.length > 0) {
+      let SalesOrderLinesGet = [];
 
-    let _improvementOpportunities = [];
+      for (let i = 0; i < salesOrderLine.length; i++) {
+        const line = salesOrderLine[i];
 
-    if (diagnosticLine && diagnosticLine.length > 0) {
-      for (let i = 0; i < diagnosticLine.length; i++) {
-        const line = diagnosticLine[i];
-        let opportunityResponse = {};
-
-        if (
-          line.SRF_HSEIdImprovementOpportunities.length === 0 &&
-          improvementOpportunities &&
-          improvementOpportunities.length > 0
-        ) {
-          for (let i = 0; i < improvementOpportunities.length; i++) {
-            const opportunity = improvementOpportunities[i];
-            if (opportunity.RefRecId === line.RecId1) {
-              opportunityResponse = await axios
-                .post(
-                  `${tenant}/api/services/SRF_HSEDocuRefServicesGroup/SRF_HSEDocuRefServices/createOpportunities`,
-                  {
-                    _description: opportunity.Description,
-                    _refRecId: opportunity.RefRecId,
-                    _dataAreaId: diagnostic.dataAreaId,
-                    _idOrigin: diagnostic.SRF_HSEIdDiagnostic,
-                    _detectionDate: moment(diagnostic.ExecutionDate).add(
-                      5,
-                      "hours"
-                    ),
-                    _state: 0,
-                    _hcmEmploymentType: 0,
-                    _origin: 1,
-                    _tableID: 17070,
-                  },
-                  {
-                    headers: { Authorization: "Bearer " + token },
-                  }
-                )
-                .catch(function (error) {
-                  if (
-                    error.response &&
-                    error.response.data &&
-                    error.response.data.error &&
-                    error.response.data.error.innererror &&
-                    error.response.data.error.innererror.message
-                  ) {
-                    throw new Error(
-                      error.response.data.error.innererror.message
-                    );
-                  } else if (error.request) {
-                    throw new Error(error.request);
-                  } else {
-                    throw new Error("Error", error.message);
-                  }
-                });
-              _improvementOpportunities.push({
-                SRF_HSEIdImprovementOpportunities: opportunityResponse.data,
-                Description: opportunity.Description,
-                RefRecId: opportunity.RefRecId,
-              });
-              break;
-            }
-          }
-        }
-
-        const __diagnosticLine = await axios
-          .patch(
-            `${tenant}/data/SRF_HSEDiagnosticLine(dataAreaId='${diagnostic.dataAreaId}',SRF_HSEIdDiagnostic='${diagnostic.SRF_HSEIdDiagnostic}',RecId1=${line.RecId1},Line=${line.Line})?cross-company=true`,
-            {
-              ...line,
-              RecId1: undefined,
-              SRF_HSEIdImprovementOpportunities:
-                line.SRF_HSEIdImprovementOpportunities.length === 0 &&
-                opportunityResponse.data &&
-                opportunityResponse.data.length > 0
-                  ? opportunityResponse.data
-                  : line.SRF_HSEIdImprovementOpportunities,
-            },
-            {
-              headers: { Authorization: "Bearer " + token },
-            }
-          )
-          .catch(function (error) {
-            if (
-              error.response &&
-              error.response.data &&
-              error.response.data.error &&
-              error.response.data.error.innererror &&
-              error.response.data.error.innererror.message
-            ) {
-              throw new Error(error.response.data.error.innererror.message);
-            } else if (
-              error.response &&
-              error.response.data &&
-              error.response.data.Message
-            ) {
-              throw new Error(error.response.data.Message);
-            } else {
-              throw new Error("Error", error.message);
-            }
-          });
-        _diagnosticLine.push(
-          __diagnosticLine && __diagnosticLine.data === ""
-            ? "Modified"
-            : "Unchanged"
+        const SalesOrderLinesItem = axios.post(
+          `${tenant}/data/CDSSalesOrderLinesV2?cross-company=true`,
+          {
+            SalesOrderNumber: salesOrder.SalesOrderNumber,
+            SalesOrderNumberHeader: salesOrder.SalesOrderNumber,
+            dataAreaId: salesOrder.dataAreaId,
+            ...line,
+          },
+          { headers: { Authorization: "Bearer " + token } }
         );
+
+        SalesOrderLinesGet.push(SalesOrderLinesItem);
       }
-    }
 
-    let _evidences = [];
-
-    if (evidences) {
-      const blobServiceClient = BlobServiceClient.fromConnectionString(
-        process.env.BLOBSTORAGECONNECTIONSTRING
-      );
-
-      const containerClient = blobServiceClient.getContainerClient(
-        process.env.BLOBSTORAGEDIAGNOSTICPATH
-      );
-
-      for (let i = 0; i < evidences.length; i++) {
-        const element = evidences[i];
-
-        if (element.imagePath.length > 0) {
-          const path = JSON.parse(element.imagePath).toString();
-
-          const matches = path.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-
-          const buffer = new Buffer.from(matches[2], "base64");
-
-          const imageType = matches[1];
-
-          const name =
-            element.refRecId +
-            moment().format().toString() +
-            "hseqdiagnosticimage." +
-            imageType.split("/")[1];
-
-          const blockBlobClient = containerClient.getBlockBlobClient(name);
-
-          const responseImage = await blockBlobClient.upload(
-            buffer,
-            buffer.byteLength
-          );
-
-          const imageRequest = {
-            _DataareaId: diagnostic.dataAreaId,
-            _AccesInformation: `${process.env.BLOBSTORAGEURL}/${process.env.BLOBSTORAGEDIAGNOSTICPATH}/${name}`,
-            _name: name,
-            _TableId: 17070,
-            _RefRecId: element.refRecId,
-            _FileType: imageType.split("/")[1],
-          };
-
-          if (responseImage) {
-            await axios
-              .post(
-                `${tenant}/api/services/SRF_HSEDocuRefServicesGroup/SRF_HSEDocuRefServices/FillDocuRef`,
-                imageRequest,
-                {
-                  headers: { Authorization: "Bearer " + token },
-                }
-              )
-              .catch(function (error) {
-                if (
-                  error.response &&
-                  error.response.data &&
-                  error.response.data.error &&
-                  error.response.data.error.innererror &&
-                  error.response.data.error.innererror.message
-                ) {
-                  throw new Error(error.response.data.error.innererror.message);
-                } else if (error.request) {
-                  throw new Error(error.request);
-                } else {
-                  throw new Error("Error", error.message);
-                }
-              });
-            _evidences.push({
-              RefRecId: element.refRecId,
-              OriginalFileName: name,
-            });
+      await axios
+        .all(SalesOrderLinesGet)
+        .then(
+          axios.spread(async (...responses2) => {
+            for (let i = 0; i < responses2.length; i++) {
+              const element = responses2[i];
+              _salesOrderLine.push(element.data);
+            }
+          })
+        )
+        .catch(function (error) {
+          if (
+            error.response &&
+            error.response.data &&
+            error.response.data.error &&
+            error.response.data.error.innererror &&
+            error.response.data.error.innererror.message
+          ) {
+            throw new Error(error.response.data.error.innererror.message);
+          } else if (error.request) {
+            throw new Error(error.request);
+          } else {
+            throw new Error("Error", error.message);
           }
-        }
-      }
+        });
     }
+
+    /*
 
     if (email) {
 
@@ -347,13 +205,13 @@ router.post("/", async (req, res) => {
               if (
                 (item[
                   "cr5be_notificationevent@OData.Community.Display.V1.FormattedValue"
-                ] === "Edit Diagnostic" ||
+                ] === "Edit salesOrder" ||
                   item[
                     "cr5be_notificationevent@OData.Community.Display.V1.FormattedValue"
                   ] === "All Events") &&
                 (item[
                   "cr5be_notificationcompany@OData.Community.Display.V1.FormattedValue"
-                ] === diagnostic.dataAreaId ||
+                ] === salesOrder.dataAreaId ||
                   item[
                     "cr5be_notificationcompany@OData.Community.Display.V1.FormattedValue"
                   ] === "All Companies") &&
@@ -383,9 +241,9 @@ router.post("/", async (req, res) => {
               )
               .map((item) => item["cr5be_emailgroupid"]);
 
-            const emailMessage = `<div><p>Señores</p><p>Cordial saludo;</p><p>Nos permitimos notificarles que la inspección ${diagnostic.SRF_HSEIdDiagnostic} de tipo ${email.TipoDiagnostico}, ha sido ejecutada exitosamente por ${email.Responsable} en ${email.Company}.</p><p>Gracias</p></div>`;
+            const emailMessage = `<div><p>Señores</p><p>Cordial saludo;</p><p>Nos permitimos notificarles que la inspección ${salesOrder.SRF_HSEIdsalesOrder} de tipo ${email.TiposalesOrdero}, ha sido ejecutada exitosamente por ${email.Responsable} en ${email.Company}.</p><p>Gracias</p></div>`;
 
-            const teamsMessage = `<div><p>Inspección ejecutada</p><p>Nos permitimos notificarles que la inspección ${diagnostic.SRF_HSEIdDiagnostic} de tipo ${email.TipoDiagnostico}, ha sido ejecutada exitosamente por ${email.Responsable} en ${email.Company}.</p></div>`;
+            const teamsMessage = `<div><p>Inspección ejecutada</p><p>Nos permitimos notificarles que la inspección ${salesOrder.SRF_HSEIdsalesOrder} de tipo ${email.TiposalesOrdero}, ha sido ejecutada exitosamente por ${email.Responsable} en ${email.Company}.</p></div>`;
 
             await axios
               .post(
@@ -398,7 +256,7 @@ router.post("/", async (req, res) => {
                   recipientsGroups: hseqNotificationTeams,
                   emailMessage,
                   teamsMessage,
-                  subject: `Inspección ejecutada - ${diagnostic.SRF_HSEIdDiagnostic} ${email.Company}`,
+                  subject: `Inspección ejecutada - ${salesOrder.SRF_HSEIdsalesOrder} ${email.Company}`,
                 },
                 {
                   headers: { "Content-Type": "application/json" },
@@ -437,14 +295,13 @@ router.post("/", async (req, res) => {
           }
         });
     }
+    */
 
     return res.json({
       result: true,
       message: "OK",
-      _diagnostic,
-      _diagnosticLine,
-      _improvementOpportunities,
-      _evidences,
+      //_salesOrder,
+      _salesOrderLine,
     });
   } catch (error) {
     return res.status(500).json({
