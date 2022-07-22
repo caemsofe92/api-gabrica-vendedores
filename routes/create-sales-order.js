@@ -2,8 +2,6 @@ let express = require("express");
 let router = express.Router();
 const axios = require("axios");
 const client = require("../bin/redis-client");
-const moment = require("moment");
-require("moment/locale/es");
 
 router.post("/", async (req, res) => {
   try {
@@ -90,7 +88,7 @@ router.post("/", async (req, res) => {
       });
 
     _salesOrder = _salesOrder.data;
-/*
+    /*
     if (email) {
       let tokenDataverse = await client.get(environment + "Dataverse");
 
@@ -297,7 +295,7 @@ router.post("/", async (req, res) => {
     return res.json({
       result: true,
       message: "OK",
-      _salesOrder
+      _salesOrder,
     });
   } catch (error) {
     return res.status(500).json({

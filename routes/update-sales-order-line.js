@@ -2,11 +2,9 @@ let express = require("express");
 let router = express.Router();
 const axios = require("axios");
 const client = require("../bin/redis-client");
-const moment = require("moment");
-const { BlobServiceClient } = require("@azure/storage-blob");
 
 router.post("/", async (req, res) => {
-  
+  try {
     const tenantUrl = req.query.tenantUrl || (req.body && req.body.tenantUrl);
     const clientId = req.query.clientId || (req.body && req.body.clientId);
     const clientSecret =
@@ -15,8 +13,7 @@ router.post("/", async (req, res) => {
     const environment =
       req.query.environment || (req.body && req.body.environment);
     const salesOrderLines =
-      req.query.salesOrderLines ||
-      (req.body && req.body.salesOrderLines);
+      req.query.salesOrderLines || (req.body && req.body.salesOrderLines);
 
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
@@ -94,8 +91,7 @@ router.post("/", async (req, res) => {
             }
           });
         _salesOrderLines.push(
-          __salesOrderLines &&
-            __salesOrderLines.data === ""
+          __salesOrderLines && __salesOrderLines.data === ""
             ? "Modified"
             : "Unchanged"
         );
@@ -303,7 +299,6 @@ router.post("/", async (req, res) => {
       message: "OK",
       _salesOrderLines,
     });
-    try {
   } catch (error) {
     return res.status(500).json({
       result: false,

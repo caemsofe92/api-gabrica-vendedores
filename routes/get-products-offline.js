@@ -17,12 +17,10 @@ router.post("/", async (req, res) => {
       req.query.numberOfElements || (req.body && req.body.numberOfElements);
     const isTest = req.query.isTest || (req.body && req.body.isTest);
     const refresh = req.query.refresh || (req.body && req.body.refresh);
-    const company =
-      req.query.company || (req.body && req.body.company);
+    const company = req.query.company || (req.body && req.body.company);
     const environment =
       req.query.environment || (req.body && req.body.environment);
-      
-  
+
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
 
@@ -84,8 +82,8 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const currentDate = moment().format(); 
-    
+    const currentDate = moment().format();
+
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
@@ -97,7 +95,7 @@ router.post("/", async (req, res) => {
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${company}'`,
       { headers: { Authorization: "Bearer " + token } }
-    ); 
+    );
     const Entity3 = axios.get(
       `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,AvailOrdered,Ordered,ItemId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
@@ -106,11 +104,7 @@ router.post("/", async (req, res) => {
     );
 
     await axios
-      .all([
-        Entity1,
-        Entity2,
-        Entity3
-      ])
+      .all([Entity1, Entity2, Entity3])
       .then(
         axios.spread(async (...responses) => {
           //1. 263754 14.03s 4.17 MB
@@ -122,14 +116,16 @@ router.post("/", async (req, res) => {
           const reply = {
             PricedisctablesBI: responses[0].data.value, //62248 10.92s 1.12 MB - 2
             ComboTables: responses[1].data.value, //22608 6.78s 442.54 KB - 3
-            ComboLines: [{
-              ItemId: "",
-              ItemName: "",
-              Qty: 1,
-              Required: false,
-              ComboId: ""
-            }],
-            InventsumsBI: responses[2].data.value //100008 12.89s 1.49 MB - 1
+            ComboLines: [
+              {
+                ItemId: "",
+                ItemName: "",
+                Qty: 1,
+                Required: false,
+                ComboId: "",
+              },
+            ],
+            InventsumsBI: responses[2].data.value, //100008 12.89s 1.49 MB - 1
           };
 
           await client.set(entity + company, JSON.stringify(reply), {

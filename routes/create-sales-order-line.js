@@ -2,8 +2,6 @@ let express = require("express");
 let router = express.Router();
 const axios = require("axios");
 const client = require("../bin/redis-client");
-const moment = require("moment");
-const { BlobServiceClient } = require("@azure/storage-blob");
 
 router.post("/", async (req, res) => {
   try {
@@ -67,7 +65,6 @@ router.post("/", async (req, res) => {
     }
     /*
     let _salesOrder;
-
    
     if (salesOrder) {
       _salesOrder = await axios
@@ -148,7 +145,6 @@ router.post("/", async (req, res) => {
     }
 
     /*
-
     if (email) {
 
       let tokenDataverse = await client.get(environment + "Dataverse");

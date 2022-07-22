@@ -1,7 +1,5 @@
 let express = require("express");
 let router = express.Router();
-const client = require("../bin/redis-client");
-const axios = require("axios");
 
 router.post("/", async (req, res) => {
   try {
@@ -15,11 +13,10 @@ router.post("/", async (req, res) => {
     if (!listSize || listSize.length === 0)
       throw new Error("listSize is Mandatory");
 
-      const response =[];
-      for (let i = 1; i <= Math.ceil(totalElements/listSize); i++) {
-        response.push(i)
-      }
-     
+    const response = [];
+    for (let i = 1; i <= Math.ceil(totalElements / listSize); i++) {
+      response.push(i);
+    }
 
     return res.json({ result: true, message: "OK", response });
   } catch (error) {

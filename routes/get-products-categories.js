@@ -2,8 +2,6 @@ let express = require("express");
 let router = express.Router();
 const client = require("../bin/redis-client");
 const axios = require("axios");
-const moment = require("moment");
-require("moment/locale/es");
 
 router.post("/", async (req, res) => {
   try {
@@ -13,7 +11,6 @@ router.post("/", async (req, res) => {
       req.query.clientSecret || (req.body && req.body.clientSecret);
     const tenant = req.query.tenant || (req.body && req.body.tenant);
     const entity = req.query.entity || (req.body && req.body.entity);
-    const offset = req.query.offset || (req.body && req.body.offset);
     const numberOfElements =
       req.query.numberOfElements || (req.body && req.body.numberOfElements);
     const isTest = req.query.isTest || (req.body && req.body.isTest);
