@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
     if (!client.isOpen) client.connect();
 
     if (!refresh) {
-      const mainReply = await client.get(entity + userCompany);
+      const mainReply = await client.get(entity + userCompany + salesDistrict);
       if (mainReply)
         return res.json({
           result: true,
@@ -85,7 +85,7 @@ router.post("/", async (req, res) => {
     }
 
     const selectEntity1Fields =
-      "&$select=PartyNumber,CustomerAccount,DeliveryAddressDescription,PaymentTerms,PartyType,NameAlias,OrganizationName,SalesTaxGroup";
+      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode";
     const Entity1 = axios.get(
       `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${salesDistrict}' and dataAreaId eq '${userCompany}'${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
@@ -94,11 +94,11 @@ router.post("/", async (req, res) => {
     );
 
     const selectEntity2Fields =
-      "&$select=PartyNumber,Description,Address,Street,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE,DMGBSalesDistrictId_PE";
+      "&$select=PartyNumber,Description,Address,Street,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE";
     const Entity2 = axios.get(
       `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none$&$count=true&cross-company=true${selectEntity2Fields}${
         testMode ? "&$top=5" : ""
-      }`,
+      }&$filter=DMGBSalesDistrictId_PE eq '${salesDistrict}'`,
       { headers: { Authorization: "Bearer " + token } }
     );
 
@@ -109,11 +109,10 @@ router.post("/", async (req, res) => {
           const reply = {
             Customers: responses[0].data.value,
             CustomersCount: responses[0].data["@odata.count"],
-            CustomerAddresses: responses[1].data.value,
-            CustomerAddressesCount: responses[1].data["@odata.count"],
+            CustomerAddresses: responses[1].data.value
           };
 
-          await client.set(entity + userCompany, JSON.stringify(reply), {
+          await client.set(entity + userCompany + salesDistrict, JSON.stringify(reply), {
             EX: 86400,
           });
           return res.json({ result: true, message: "OK", response: reply });

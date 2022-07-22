@@ -221,7 +221,7 @@ router.post("/", async (req, res) => {
       });
 
     const selectEntityFields =
-      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,NameAlias,OrganizationName,SalesTaxGroup,LineDiscountCode";
+      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode";
     const Entity13 = axios.get(
       `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${userReply.SalesUnitId}' and dataAreaId eq '${userReply.Company}'${selectEntityFields}`,
       { headers: { Authorization: "Bearer " + token } }
