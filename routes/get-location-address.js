@@ -81,7 +81,7 @@ router.post("/", async (req, res) => {
     }
 
     const selectEntity2Fields =
-      "&$select=PartyNumber,Description,Address,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE";
+      "&$select=PartyNumber,Description,Address,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE,LocationId";
 
     const Entity1 = axios.get(
       `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=PartyNumber eq '${customerPartyNumber}'${selectEntity2Fields}`,
