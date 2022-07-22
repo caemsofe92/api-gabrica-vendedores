@@ -11,20 +11,13 @@ router.post("/", async (req, res) => {
             req.query.clientSecret || (req.body && req.body.clientSecret);
         const tenant = req.query.tenant || (req.body && req.body.tenant);
         const entity = req.query.entity || (req.body && req.body.entity);
-        const offset = req.query.offset || (req.body && req.body.offset);
-        const numberOfElements =
-            req.query.numberOfElements || (req.body && req.body.numberOfElements);
         const refresh = req.query.refresh || (req.body && req.body.refresh);
         const userCompany =
             req.query.userCompany || (req.body && req.body.userCompany);
         const environment =
             req.query.environment || (req.body && req.body.environment);
-        const search = req.query.search || (req.body && req.body.search);
-        const sort = req.query.sort || (req.body && req.body.sort);
         const testMode = req.query.testMode || (req.body && req.body.testMode);
-
         const salesDistrict = req.query.salesDistrict || (req.body && req.body.salesDistrict);
-        const company = req.query.company || (req.body && req.body.company);
 
         if (!tenantUrl || tenantUrl.length === 0)
             throw new Error("tenantUrl is Mandatory");
@@ -47,9 +40,6 @@ router.post("/", async (req, res) => {
 
         if (!salesDistrict || salesDistrict.length === 0)
             throw new Error("salesDistrict is Mandatory");
-
-        if (!company || company.length === 0)
-            throw new Error("company is Mandatory");
 
         if (!client.isOpen) client.connect();
 
@@ -95,7 +85,7 @@ router.post("/", async (req, res) => {
 
         const selectEntity1Fields = "&$select=PartyNumber,CustomerAccount,DeliveryAddressDescription,PaymentTerms,PartyType,NameAlias,OrganizationName,SalesTaxGroup";
         const Entity1 = axios.get(
-            `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${salesDistrict}' and dataAreaId eq '${company}'${selectEntity1Fields}${testMode ? "&$top=5" : ""}`,
+            `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${salesDistrict}' and dataAreaId eq '${userCompany}'${selectEntity1Fields}${testMode ? "&$top=5" : ""}`,
             { headers: { Authorization: "Bearer " + token } }
         );
 
