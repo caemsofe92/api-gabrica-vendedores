@@ -129,57 +129,6 @@ router.post("/", async (req, res) => {
     { headers: { Authorization: "Bearer " + token } }
   );
   const Entity6 = axios.get(
-    `${tenant}/data/RetailEcoResProductTranslation?$format=application/json;odata.metadata=none&$select=EcoResProduct_DisplayProductNumber,Product,Name${
-      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-    }&cross-company=true`,
-    { headers: { Authorization: "Bearer " + token } }
-  );
-  const Entity7 = axios.get(
-    `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol${
-      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-    }&cross-company=true${
-      mainReply.SystemUser && mainReply.SystemUser.Company
-        ? mainReply.SystemUser.Company
-        : null
-        ? `&$filter=dataAreaId eq '${
-            mainReply.SystemUser && mainReply.SystemUser.Company
-              ? mainReply.SystemUser.Company
-              : null
-          }'`
-        : ""
-    }`,
-    { headers: { Authorization: "Bearer " + token } }
-  );
-  const Entity8 = axios.get(
-    `${tenant}/data/InventitemsalessetupsBI?$format=application/json;odata.metadata=none&$select=ItemId,Stopped${
-      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-    }&cross-company=true${
-      mainReply.SystemUser && mainReply.SystemUser.Company
-        ? mainReply.SystemUser.Company
-        : null
-        ? `&$filter=dataAreaId eq '${
-            mainReply.SystemUser && mainReply.SystemUser.Company
-              ? mainReply.SystemUser.Company
-              : null
-          }'`
-        : ""
-    }`,
-    { headers: { Authorization: "Bearer " + token } }
-  );
-  const Entity9 = axios.get(
-    `${tenant}/data/RetailEcoResCategoryHierarchy?$format=application/json;odata.metadata=none&$select=Name,AxRecId${
-      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-    }&cross-company=true`,
-    { headers: { Authorization: "Bearer " + token } }
-  );
-
-  const Entity10 = axios.get(
-    `${tenant}/data/RetailEcoResCategory?$format=application/json;odata.metadata=none&$select=EcoResCategory1_Name,CategoryHierarchy,AxRecId${
-      isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-    }&cross-company=true&$filter=Level eq 1`,
-    { headers: { Authorization: "Bearer " + token } }
-  );
-  const Entity11 = axios.get(
     `${tenant}/data/UnitOfMeasureTranslations?$format=application/json;odata.metadata=none&$select=UnitSymbol,TranslatedDescription${
       isTest && numberOfElements ? "&$top=" + numberOfElements : ""
     }&cross-company=true`,
@@ -189,17 +138,7 @@ router.post("/", async (req, res) => {
   let userReply;
 
   await axios
-    .all([
-      Entity3,
-      Entity4,
-      Entity5,
-      Entity6,
-      Entity7,
-      Entity8,
-      Entity9,
-      Entity10,
-      Entity11,
-    ])
+    .all([Entity3, Entity4, Entity5, Entity6])
     .then(
       axios.spread(async (...responses) => {
         const Roles = responses[0].data.value.map((Rol) => {
@@ -207,185 +146,61 @@ router.post("/", async (req, res) => {
         });
         const SalesUnitMember = responses[1].data.value[0];
         const Companies = responses[2].data.value;
+        const UnitOfMeasureTranslations = responses[3].data.value;
 
-        let RetailEcoResProductTranslation = responses[3].data.value;
-        const ReleasedProductsV2 = responses[4].data.value;
-        const InventitemsalessetupsBI = responses[5].data.value;
-        const RetailEcoResCategoryHierarchy = responses[6].data.value;
-        const RetailEcoResCategory = responses[7].data.value;
-        const UnitOfMeasureTranslations = responses[8].data.value;
-
-        let _EcoresproductcategoriesBI = [];
-
-        for (let i = 0; i < RetailEcoResCategoryHierarchy.length; i++) {
-          const _EcoresproductcategoriesBIItem = axios.get(
-            `${tenant}/data/EcoresproductcategoriesBI?$format=application/json;odata.metadata=none&$select=CategoryHierarchy,Product,Category${
-              isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-            }&cross-company=true&$filter=CategoryHierarchy eq ${
-              RetailEcoResCategoryHierarchy[i].AxRecId
-            }`,
-            { headers: { Authorization: "Bearer " + token } }
-          );
-
-          _EcoresproductcategoriesBI.push(_EcoresproductcategoriesBIItem);
-        }
-        
-        await axios
-          .all(_EcoresproductcategoriesBI)
-          .then(
-            axios.spread(async (...responses2) => {
-              let EcoresproductcategoriesBI = [];
-
-              for (let i = 0; i < responses2.length; i++) {
-                const element = responses2[i];
-                element.data.value.map((item2) =>
-                  EcoresproductcategoriesBI.push(item2)
-                );
-              }
-
-              for (let i = 0; i < RetailEcoResProductTranslation.length; i++) {
-                const item1 = RetailEcoResProductTranslation[i];
-
-                for (let j = 0; j < ReleasedProductsV2.length; j++) {
-                  const item2 = ReleasedProductsV2[j];
-                  if (
-                    item1.EcoResProduct_DisplayProductNumber ===
-                    item2.ItemNumber
-                  ) {
-                    RetailEcoResProductTranslation[i] = {
-                      ...RetailEcoResProductTranslation[i],
-                      SalesLineDiscountProductGroupCode:
-                        item2.SalesLineDiscountProductGroupCode,
-                      SalesSalesTaxItemGroupCode:
-                        item2.SalesSalesTaxItemGroupCode,
-                      InventoryUnitSymbol: item2.InventoryUnitSymbol,
-                    };
-                    break;
-                  }
-                }
-
-                for (let j = 0; j < InventitemsalessetupsBI.length; j++) {
-                  const item2 = InventitemsalessetupsBI[j];
-                  if (
-                    item1.EcoResProduct_DisplayProductNumber === item2.ItemId
-                  ) {
-                    RetailEcoResProductTranslation[i] = {
-                      ...RetailEcoResProductTranslation[i],
-                      Stopped: item2.Stopped,
-                    };
-                    break;
-                  }
-                }
-
-                let productCategories = [];
-
-                for (let j = 0; j < EcoresproductcategoriesBI.length; j++) {
-                  const item2 = EcoresproductcategoriesBI[j];
-                  if (item1.Product === item2.Product) {
-                    productCategories.push({
-                      CategoryHierarchy: item2.CategoryHierarchy,
-                      Category: item2.Category
-                      });
-                  }
-                }
-
-                RetailEcoResProductTranslation[i] = {
-                  ...RetailEcoResProductTranslation[i],
-                  productCategories,
-                };
-              }
-
-              for (let i = 0; i < RetailEcoResCategoryHierarchy.length; i++) {
-                const item1 = RetailEcoResCategoryHierarchy[i];
-
-                let values = [];
-                for (let j = 0; j < RetailEcoResCategory.length; j++) {
-                  const item2 = RetailEcoResCategory[j];
-                  if (item1.AxRecId === item2.CategoryHierarchy) {
-                    values.push({
-                      EcoResCategory1_Name: item2.EcoResCategory1_Name,
-                      AxRecId: item2.AxRecId,
-                    });
-                  }
-                }
-                RetailEcoResCategoryHierarchy[i] = {
-                  ...RetailEcoResCategoryHierarchy[i],
-                  values,
-                };
-              }
-
-              userReply = {
-                Companies,
-                Roles,
-                RetailEcoResProductTranslation,
-                RetailEcoResCategoryHierarchy,
-                UnitOfMeasureTranslations,
-                UserId:
-                  mainReply.SystemUser && mainReply.SystemUser.UserID
-                    ? mainReply.SystemUser.UserID
-                    : null,
-                Company:
-                  mainReply.SystemUser && mainReply.SystemUser.Company
-                    ? mainReply.SystemUser.Company
-                    : null,
-                Language:
-                  mainReply.SystemUser && mainReply.SystemUser.UserInfo_language
-                    ? mainReply.SystemUser.UserInfo_language
-                    : null,
-                Enabled:
-                  mainReply.SystemUser && mainReply.SystemUser.Enabled
-                    ? mainReply.SystemUser.Enabled
-                    : null,
-                UserName:
-                  mainReply.SystemUser && mainReply.SystemUser.UserName
-                    ? mainReply.SystemUser.UserName
-                    : null,
-                PersonnelNumber:
-                  mainReply.Worker && mainReply.Worker.PersonnelNumber
-                    ? mainReply.Worker.PersonnelNumber
-                    : null,
-                PersonName:
-                  mainReply.Worker && mainReply.Worker.Name
-                    ? mainReply.Worker.Name
-                    : null,
-                SalesUnitId:
-                  SalesUnitMember && SalesUnitMember.SalesUnitId
-                    ? SalesUnitMember.SalesUnitId
-                    : null,
-                SalesPersonWorker:
-                  SalesUnitMember && SalesUnitMember.SalesPersonWorker
-                    ? SalesUnitMember.SalesPersonWorker
-                    : null,
-                MemberId:
-                  SalesUnitMember && SalesUnitMember.MemberId
-                    ? SalesUnitMember.MemberId
-                    : null,
-                ParentId:
-                  SalesUnitMember && SalesUnitMember.ParentId
-                    ? SalesUnitMember.ParentId
-                    : null,
-                SalesManager:
-                  SalesUnitMember && SalesUnitMember.SalesManager
-                    ? SalesUnitMember.SalesManager
-                    : null,
-              };
-            })
-          )
-          .catch(function (error) {
-            if (
-              error.response &&
-              error.response.data &&
-              error.response.data.error &&
-              error.response.data.error.innererror &&
-              error.response.data.error.innererror.message
-            ) {
-              throw new Error(error.response.data.error.innererror.message);
-            } else if (error.request) {
-              throw new Error(error.request);
-            } else {
-              throw new Error("Error", error.message);
-            }
-          });
+        userReply = {
+          UserId:
+            mainReply.SystemUser && mainReply.SystemUser.UserID
+              ? mainReply.SystemUser.UserID
+              : null,
+          Company:
+            mainReply.SystemUser && mainReply.SystemUser.Company
+              ? mainReply.SystemUser.Company
+              : null,
+          Language:
+            mainReply.SystemUser && mainReply.SystemUser.UserInfo_language
+              ? mainReply.SystemUser.UserInfo_language
+              : null,
+          Enabled:
+            mainReply.SystemUser && mainReply.SystemUser.Enabled
+              ? mainReply.SystemUser.Enabled
+              : null,
+          UserName:
+            mainReply.SystemUser && mainReply.SystemUser.UserName
+              ? mainReply.SystemUser.UserName
+              : null,
+          PersonnelNumber:
+            mainReply.Worker && mainReply.Worker.PersonnelNumber
+              ? mainReply.Worker.PersonnelNumber
+              : null,
+          PersonName:
+            mainReply.Worker && mainReply.Worker.Name
+              ? mainReply.Worker.Name
+              : null,
+          SalesUnitId:
+            SalesUnitMember && SalesUnitMember.SalesUnitId
+              ? SalesUnitMember.SalesUnitId
+              : null,
+          SalesPersonWorker:
+            SalesUnitMember && SalesUnitMember.SalesPersonWorker
+              ? SalesUnitMember.SalesPersonWorker
+              : null,
+          MemberId:
+            SalesUnitMember && SalesUnitMember.MemberId
+              ? SalesUnitMember.MemberId
+              : null,
+          ParentId:
+            SalesUnitMember && SalesUnitMember.ParentId
+              ? SalesUnitMember.ParentId
+              : null,
+          SalesManager:
+            SalesUnitMember && SalesUnitMember.SalesManager
+              ? SalesUnitMember.SalesManager
+              : null,
+          Companies,
+          Roles,
+          UnitOfMeasureTranslations
+        };
       })
     )
     .catch(function (error) {
@@ -411,77 +226,25 @@ router.post("/", async (req, res) => {
     { headers: { Authorization: "Bearer " + token } }
   );
 
-  const selectEntity2Fields =
-    "&$select=PartyNumber,Description,Address,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE";
-
   await axios
     .all([Entity13])
     .then(
       axios.spread(async (...responses) => {
-        const GAB_Customers = responses[0].data.value;
+        const customersReply = {
+          ...userReply,
+          GAB_Customers: responses[0].data.value,
+          GAB_CustomersCount: responses[0].data["@odata.count"],
+        };
 
-        let PartyLocationPostalAddressesV2 = [];
+        await client.set(entity + userEmail, JSON.stringify(customersReply), {
+          EX: 84600,
+        });
 
-        for (let i = 0; i < GAB_Customers.length; i++) {
-          const PartyLocationPostalAddressesV2Item = axios.get(
-            `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=PartyNumber eq '${GAB_Customers[i].PartyNumber}'${selectEntity2Fields}`,
-            { headers: { Authorization: "Bearer " + token } }
-          );
-
-          PartyLocationPostalAddressesV2.push(
-            PartyLocationPostalAddressesV2Item
-          );
-        }
-
-        await axios
-          .all(PartyLocationPostalAddressesV2)
-          .then(
-            axios.spread(async (...responses2) => {
-              let PartyLocationPostalAddresses = [];
-              for (let i = 0; i < responses2.length; i++) {
-                const element = responses2[i];
-                element.data.value.map((item2) =>
-                  PartyLocationPostalAddresses.push(item2)
-                );
-              }
-
-              const customersReply = {
-                ...userReply,
-                GAB_Customers: responses[0].data.value,
-                GAB_CustomersCount: responses[0].data["@odata.count"],
-                PartyLocationPostalAddressesV2: PartyLocationPostalAddresses,
-              };
-
-              await client.set(
-                entity + userEmail,
-                JSON.stringify(customersReply),
-                {
-                  EX: 84600,
-                }
-              );
-
-              return res.json({
-                result: true,
-                message: "OK",
-                response: customersReply,
-              });
-            })
-          )
-          .catch(function (error) {
-            if (
-              error.response &&
-              error.response.data &&
-              error.response.data.error &&
-              error.response.data.error.innererror &&
-              error.response.data.error.innererror.message
-            ) {
-              throw new Error(error.response.data.error.innererror.message);
-            } else if (error.request) {
-              throw new Error(error.request);
-            } else {
-              throw new Error("Error", error.message);
-            }
-          });
+        return res.json({
+          result: true,
+          message: "OK",
+          response: customersReply,
+        });
       })
     )
     .catch(function (error) {

@@ -2,8 +2,6 @@ let express = require("express");
 let router = express.Router();
 const client = require("../bin/redis-client");
 const axios = require("axios");
-const moment = require("moment");
-require("moment/locale/es");
 
 router.post("/", async (req, res) => {
   try {
@@ -13,23 +11,12 @@ router.post("/", async (req, res) => {
       req.query.clientSecret || (req.body && req.body.clientSecret);
     const tenant = req.query.tenant || (req.body && req.body.tenant);
     const entity = req.query.entity || (req.body && req.body.entity);
-    const offset = req.query.offset || (req.body && req.body.offset);
-    const numberOfElements =
-      req.query.numberOfElements || (req.body && req.body.numberOfElements);
-    const isTest = req.query.isTest || (req.body && req.body.isTest);
     const refresh = req.query.refresh || (req.body && req.body.refresh);
-    const company =
-      req.query.company || (req.body && req.body.company);
     const environment =
       req.query.environment || (req.body && req.body.environment);
-    const siteId =
-      req.query.siteId || (req.body && req.body.siteId);
-    const locationId =
-      req.query.locationId || (req.body && req.body.locationId);
-    const groupId =
-      req.query.groupId || (req.body && req.body.groupId);
-      
-  
+    const customerPartyNumber =
+      req.query.customerPartyNumber ||
+      (req.body && req.body.customerPartyNumber);
 
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
@@ -44,8 +31,8 @@ router.post("/", async (req, res) => {
 
     if (!entity || entity.length === 0) throw new Error("entity is Mandatory");
 
-    if (!company || company.length === 0)
-      throw new Error("company is Mandatory");
+    if (!customerPartyNumber || customerPartyNumber.length === 0)
+      throw new Error("customerPartyNumber is Mandatory");
 
     if (!environment || environment.length === 0)
       throw new Error("environment is Mandatory");
@@ -53,12 +40,13 @@ router.post("/", async (req, res) => {
     if (!client.isOpen) client.connect();
 
     if (!refresh) {
-      const mainReply = await client.get(entity + company + siteId + locationId + groupId);
+      const mainReply = await client.get(entity + customerPartyNumber);
+
       if (mainReply)
         return res.json({
           result: true,
           message: "OK",
-          response: JSON.parse(mainReply),
+          response: mainReply,
         });
     }
 
@@ -92,62 +80,32 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const currentDate = moment().format(); 
-    
+    const selectEntity2Fields =
+      "&$select=PartyNumber,Description,Address,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE";
+
     const Entity1 = axios.get(
-      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${company}' and ToDate gt ${currentDate} and FromDate lt ${currentDate}`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity2 = axios.get(
-      `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,GroupId${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${company}'${
-        groupId ? ` and GroupId eq '${groupId}'` : ""
-      }`,
-      { headers: { Authorization: "Bearer " + token } }
-    ); 
-    const Entity3 = axios.get(
-      `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,AvailOrdered,Ordered,ItemId${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${company}'${
-        siteId && locationId ? ` and InventSiteId eq '${siteId}' and InventLocationId eq '${locationId}' and ClosedQty eq Microsoft.Dynamics.DataEntities.NoYes'No'` : ""
-      }`,
+      `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=PartyNumber eq '${customerPartyNumber}'${selectEntity2Fields}`,
       { headers: { Authorization: "Bearer " + token } }
     );
 
     await axios
-      .all([
-        Entity1,
-        Entity2,
-        Entity3
-      ])
+      .all([Entity1])
       .then(
         axios.spread(async (...responses) => {
-          //1. 263754 14.03s 4.17 MB
-          //2. 207504 10.59s 3.33 MB
-          //3. 194379 10.31s 3.07 MB
-          //4. 158249 8.00s 2.37 MB
-          //5. 137879 6.99s 1.98 MB
+          const reply = responses[0].data.value;
 
-          const reply = {
-            PricedisctablesBI: responses[0].data.value, //62248 10.92s 1.12 MB - 2
-            ComboTables: responses[1].data.value, //22608 6.78s 442.54 KB - 3
-            ComboLines: [{
-              ItemId: "",
-              ItemName: "",
-              Qty: 1,
-              Required: false,
-              ComboId: ""
-            }],
-            InventsumsBI: responses[2].data.value //100008 12.89s 1.49 MB - 1
-          };
-
-          await client.set(entity + company + siteId + locationId + groupId, JSON.stringify(reply), {
-            EX: 86400,
+          await client.set(
+            entity + customerPartyNumber,
+            JSON.stringify(reply),
+            {
+              EX: 604800,
+            }
+          );
+          return res.json({
+            result: true,
+            message: "OK",
+            response: reply,
           });
-          return res.json({ result: true, message: "OK", response: reply });
         })
       )
       .catch(function (error) {
