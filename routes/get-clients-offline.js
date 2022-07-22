@@ -85,7 +85,7 @@ router.post("/", async (req, res) => {
     }
 
     const selectEntity1Fields =
-      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode";
+      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode,DeliveryAddressCountryRegionId";
     const Entity1 = axios.get(
       `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${salesDistrict}' and dataAreaId eq '${userCompany}'${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
