@@ -15,9 +15,13 @@ var getPricesDiscountsCombosInventoryOffline = require("./routes/get-prices-disc
 var getClientsOffline = require("./routes/get-clients-offline");
 var getLocationAddress = require("./routes/get-location-address");
 var getSalesOrders = require("./routes/get-sales-orders");
+var getSalesOrdersOffline = require("./routes/get-sales-orders-offline");
 var createSalesOrder = require("./routes/create-sales-order");
+var updateSalesOrder = require("./routes/update-sales-order");
+var deleteSalesOrder = require("./routes/delete-sales-order");
 var createSalesOrderLine = require("./routes/create-sales-order-line");
 var updateSalesOrderLine = require("./routes/update-sales-order-line");
+var deleteSalesOrderLine = require("./routes/delete-sales-order-line");
 
 var app = express();
 app.use(compression());
@@ -35,9 +39,13 @@ app.use("/get-prices-discounts-combos-inventory-offline", getPricesDiscountsComb
 app.use("/get-clients-offline", getClientsOffline);
 app.use("/get-location-address", getLocationAddress);
 app.use("/get-sales-orders", getSalesOrders);
+app.use("/get-sales-orders-offline", getSalesOrdersOffline);
 app.use("/create-sales-order", createSalesOrder);
+app.use("/update-sales-order", updateSalesOrder);
+app.use("/delete-sales-order", deleteSalesOrder);
 app.use("/create-sales-order-line", createSalesOrderLine);
 app.use("/update-sales-order-line", updateSalesOrderLine);
+app.use("/delete-sales-order-line", deleteSalesOrderLine);
 
 app.use(function (req, res, next) {
   next(createError(404));
