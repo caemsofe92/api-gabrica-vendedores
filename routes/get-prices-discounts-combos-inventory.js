@@ -89,7 +89,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const currentDate = moment().subtract(5, "hours").format("YYYY-MM-DDTHH:mm:ssZ");
+    const currentDate = moment().subtract(5, "hours").format("YYYY-MM-DDTHH:mm:ss-05:00");
 
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
