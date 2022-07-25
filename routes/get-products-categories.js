@@ -170,6 +170,7 @@ router.post("/", async (req, res) => {
                         SalesSalesTaxItemGroupCode:
                           item2.SalesSalesTaxItemGroupCode,
                         InventoryUnitSymbol: item2.InventoryUnitSymbol,
+                        dataAreaId: item2.dataAreaId
                       };
                       break;
                     }
@@ -206,6 +207,8 @@ router.post("/", async (req, res) => {
                   };
                 }
 
+                RetailEcoResProductTranslation.filter(item =>  (item.dataAreaId).toUpperCase() === (userCompany).toUpperCase());
+                
                 for (let i = 0; i < RetailEcoResCategoryHierarchy.length; i++) {
                   const item1 = RetailEcoResCategoryHierarchy[i];
 
