@@ -88,7 +88,7 @@ router.post("/", async (req, res) => {
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity2 = axios.get(
-      `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol,dataAreaId${
+      `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
       { headers: { Authorization: "Bearer " + token } }
@@ -116,8 +116,8 @@ router.post("/", async (req, res) => {
       .all([Entity1, Entity2, Entity3, Entity4, Entity5])
       .then(
         axios.spread(async (...responses) => {
-          let RetailEcoResProductTranslation = responses[0].data.value;
-          const ReleasedProductsV2 = responses[1].data.value;
+          const RetailEcoResProductTranslation = responses[0].data.value;
+          let ReleasedProductsV2 = responses[1].data.value;
           const InventitemsalessetupsBI = responses[2].data.value;
           const RetailEcoResCategoryHierarchy = responses[3].data.value;
           const RetailEcoResCategory = responses[4].data.value;
@@ -150,27 +150,21 @@ router.post("/", async (req, res) => {
                   );
                 }
 
-                for (
-                  let i = 0;
-                  i < RetailEcoResProductTranslation.length;
-                  i++
-                ) {
-                  const item1 = RetailEcoResProductTranslation[i];
-
-                  for (let j = 0; j < ReleasedProductsV2.length; j++) {
-                    const item2 = ReleasedProductsV2[j];
+                for (let i = 0; i < ReleasedProductsV2.length; i++) {
+                  for (
+                    let j = 0;
+                    j < RetailEcoResProductTranslation.length;
+                    j++
+                  ) {
+                    const item2 = RetailEcoResProductTranslation[j];
                     if (
-                      item1.EcoResProduct_DisplayProductNumber ===
-                      item2.ItemNumber
+                      ReleasedProductsV2[i].ItemNumber ===
+                      item2.EcoResProduct_DisplayProductNumber
                     ) {
-                      RetailEcoResProductTranslation[i] = {
-                        ...RetailEcoResProductTranslation[i],
-                        SalesLineDiscountProductGroupCode:
-                          item2.SalesLineDiscountProductGroupCode,
-                        SalesSalesTaxItemGroupCode:
-                          item2.SalesSalesTaxItemGroupCode,
-                        InventoryUnitSymbol: item2.InventoryUnitSymbol,
-                        dataAreaId: item2.dataAreaId
+                      ReleasedProductsV2[i] = {
+                        ...ReleasedProductsV2[i],
+                        Product: item2.Product ? item2.Product : null,
+                        Name: item2.Name ? item2.Name : null,
                       };
                       break;
                     }
@@ -178,37 +172,33 @@ router.post("/", async (req, res) => {
 
                   for (let j = 0; j < InventitemsalessetupsBI.length; j++) {
                     const item2 = InventitemsalessetupsBI[j];
-                    if (
-                      item1.EcoResProduct_DisplayProductNumber === item2.ItemId
-                    ) {
-                      RetailEcoResProductTranslation[i] = {
-                        ...RetailEcoResProductTranslation[i],
-                        Stopped: item2.Stopped,
+                    if (ReleasedProductsV2[i].ItemNumber === item2.ItemId) {
+                      ReleasedProductsV2[i] = {
+                        ...ReleasedProductsV2[i],
+                        Stopped: item2.Stopped ? item2.Stopped : null,
                       };
                       break;
                     }
                   }
 
                   let productCategories = [];
-
-                  for (let j = 0; j < EcoresproductcategoriesBI.length; j++) {
-                    const item2 = EcoresproductcategoriesBI[j];
-                    if (item1.Product === item2.Product) {
-                      productCategories.push({
-                        CategoryHierarchy: item2.CategoryHierarchy,
-                        Category: item2.Category,
-                      });
+                  
+                    for (let j = 0; j < EcoresproductcategoriesBI.length; j++) {
+                      const item2 = EcoresproductcategoriesBI[j];
+                      if (ReleasedProductsV2[i].Product === item2.Product) {
+                        productCategories.push({
+                          CategoryHierarchy: item2.CategoryHierarchy,
+                          Category: item2.Category,
+                        });
+                      }
                     }
-                  }
 
-                  RetailEcoResProductTranslation[i] = {
-                    ...RetailEcoResProductTranslation[i],
+                  ReleasedProductsV2[i] = {
+                    ...ReleasedProductsV2[i],
                     productCategories,
                   };
                 }
 
-                RetailEcoResProductTranslation.filter(item => item.dataAreaId && (item.dataAreaId).toUpperCase() === (userCompany).toUpperCase());
-                
                 for (let i = 0; i < RetailEcoResCategoryHierarchy.length; i++) {
                   const item1 = RetailEcoResCategoryHierarchy[i];
 
@@ -229,7 +219,7 @@ router.post("/", async (req, res) => {
                 }
 
                 reply = {
-                  RetailEcoResProductTranslation,
+                  RetailEcoResProductTranslation: ReleasedProductsV2,
                   RetailEcoResCategoryHierarchy,
                 };
 
