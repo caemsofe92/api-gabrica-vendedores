@@ -150,6 +150,23 @@ router.post("/", async (req, res) => {
                   );
                 }
 
+                ReleasedProductsV2 = ReleasedProductsV2.filter((item) => {
+                  for (
+                    let i = 0;
+                    i < RetailEcoResProductTranslation.length;
+                    i++
+                  ) {
+                    const item2 = RetailEcoResProductTranslation[i];
+                    if (
+                      ReleasedProductsV2[i].ItemNumber ===
+                      item2.EcoResProduct_DisplayProductNumber
+                    ) {
+                      return true;
+                    }
+                  }
+                  return false;
+                });
+
                 for (let i = 0; i < ReleasedProductsV2.length; i++) {
                   for (
                     let j = 0;
@@ -182,16 +199,16 @@ router.post("/", async (req, res) => {
                   }
 
                   let productCategories = [];
-                  
-                    for (let j = 0; j < EcoresproductcategoriesBI.length; j++) {
-                      const item2 = EcoresproductcategoriesBI[j];
-                      if (ReleasedProductsV2[i].Product === item2.Product) {
-                        productCategories.push({
-                          CategoryHierarchy: item2.CategoryHierarchy,
-                          Category: item2.Category,
-                        });
-                      }
+
+                  for (let j = 0; j < EcoresproductcategoriesBI.length; j++) {
+                    const item2 = EcoresproductcategoriesBI[j];
+                    if (ReleasedProductsV2[i].Product === item2.Product) {
+                      productCategories.push({
+                        CategoryHierarchy: item2.CategoryHierarchy,
+                        Category: item2.Category,
+                      });
                     }
+                  }
 
                   ReleasedProductsV2[i] = {
                     ...ReleasedProductsV2[i],
@@ -210,7 +227,11 @@ router.post("/", async (req, res) => {
                         Name: item2.Name,
                         AxRecIdChild: item2.AxRecId,
                         EcoResCategory1_Name: item2.EcoResCategory1_Name,
-                        Label: `${item2.Name}${item2.EcoResCategory1_Name.length > 0 ? ` (${item2.EcoResCategory1_Name})`: ''}`
+                        Label: `${item2.Name}${
+                          item2.EcoResCategory1_Name.length > 0
+                            ? ` (${item2.EcoResCategory1_Name})`
+                            : ""
+                        }`,
                       });
                     }
                   }
