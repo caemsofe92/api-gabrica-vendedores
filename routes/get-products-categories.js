@@ -88,7 +88,7 @@ router.post("/", async (req, res) => {
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity2 = axios.get(
-      `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol${
+      `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol,dataAreaId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
       { headers: { Authorization: "Bearer " + token } }
@@ -207,7 +207,7 @@ router.post("/", async (req, res) => {
                   };
                 }
 
-                RetailEcoResProductTranslation.filter(item =>  (item.dataAreaId).toUpperCase() === (userCompany).toUpperCase());
+                RetailEcoResProductTranslation.filter(item => item.dataAreaId && (item.dataAreaId).toUpperCase() === (userCompany).toUpperCase());
                 
                 for (let i = 0; i < RetailEcoResCategoryHierarchy.length; i++) {
                   const item1 = RetailEcoResCategoryHierarchy[i];
