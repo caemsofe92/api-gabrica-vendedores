@@ -208,7 +208,7 @@ router.post("/", async (req, res) => {
                     if (item1.AxRecId === item2.CategoryHierarchy) {
                       values.push({
                         Name: item2.Name,
-                        AxRecId: item2.AxRecId
+                        AxRecIdChild: item2.AxRecId
                       });
                     }
                   }
