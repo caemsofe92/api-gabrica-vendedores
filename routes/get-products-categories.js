@@ -106,7 +106,7 @@ router.post("/", async (req, res) => {
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity5 = axios.get(
-      `${tenant}/data/RetailEcoResCategory?$format=application/json;odata.metadata=none&$select=Name,CategoryHierarchy,AxRecId${
+      `${tenant}/data/RetailEcoResCategory?$format=application/json;odata.metadata=none&$select=Name,CategoryHierarchy,AxRecId,EcoResCategory1_Name${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true`,
       { headers: { Authorization: "Bearer " + token } }
@@ -208,7 +208,9 @@ router.post("/", async (req, res) => {
                     if (item1.AxRecId === item2.CategoryHierarchy) {
                       values.push({
                         Name: item2.Name,
-                        AxRecIdChild: item2.AxRecId
+                        AxRecIdChild: item2.AxRecId,
+                        EcoResCategory1_Name: item2.EcoResCategory1_Name,
+                        Label: `${item2.Name}${item2.EcoResCategory1_Name.length > 0 ? ` (${item2.EcoResCategory1_Name})`: ''}`
                       });
                     }
                   }
