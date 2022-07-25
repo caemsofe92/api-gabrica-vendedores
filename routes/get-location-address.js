@@ -46,7 +46,7 @@ router.post("/", async (req, res) => {
         return res.json({
           result: true,
           message: "OK",
-          response: mainReply,
+          response: JSON.parse(mainReply),
         });
     }
 
