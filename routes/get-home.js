@@ -83,7 +83,7 @@ router.post("/", async (req, res) => {
     let mainReply;
 
     const Entity1 = axios.get(
-      `${tenant}/data/SystemUsers?$format=application/json;odata.metadata=none&cross-company=true&$filter=Email eq '${userEmail}'&$select=UserID,Company,UserInfo_language,Enabled,UserName`,
+      `${tenant}/data/SystemUsers?$format=application/json;odata.metadata=none&cross-company=true&$filter=Alias eq '${userEmail}'&$select=UserID,Company,UserInfo_language,Enabled,UserName`,
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity2 = axios.get(
@@ -121,6 +121,7 @@ router.post("/", async (req, res) => {
       `${tenant}/data/SecurityUserRoles?$format=application/json;odata.metadata=none&cross-company=true&$filter=UserId eq '${mainReply.SystemUser.UserID}'&$select=SecurityRoleName`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    
     const Entity4 = axios.get(
       `${tenant}/data/SmmsalesunitmembersBI?$format=application/json;odata.metadata=none&cross-company=true&$filter=Identification eq '${mainReply.Worker.PersonnelNumber}'&$select=SalesUnitId,SalesPersonWorker,MemberId,ParentId,SalesManager`,
       { headers: { Authorization: "Bearer " + token } }
@@ -129,17 +130,11 @@ router.post("/", async (req, res) => {
       `${tenant}/data/Companies?$format=application/json;odata.metadata=none&cross-company=true&$select=DataArea,Name`,
       { headers: { Authorization: "Bearer " + token } }
     );
-    const Entity6 = axios.get(
-      `${tenant}/data/UnitOfMeasureTranslations?$format=application/json;odata.metadata=none&$select=UnitSymbol,TranslatedDescription${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
 
     let userReply;
 
     await axios
-      .all([Entity3, Entity4, Entity5, Entity6])
+      .all([Entity3, Entity4, Entity5])
       .then(
         axios.spread(async (...responses) => {
           const Roles = responses[0].data.value.map((Rol) => {
@@ -147,7 +142,6 @@ router.post("/", async (req, res) => {
           });
           const SalesUnitMember = responses[1].data.value[0];
           const Companies = responses[2].data.value;
-          const UnitOfMeasureTranslations = responses[3].data.value;
 
           userReply = {
             UserId:
@@ -199,8 +193,7 @@ router.post("/", async (req, res) => {
                 ? SalesUnitMember.SalesManager
                 : null,
             Companies,
-            Roles,
-            UnitOfMeasureTranslations,
+            Roles
           };
         })
       )
