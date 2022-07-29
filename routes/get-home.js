@@ -130,11 +130,15 @@ router.post("/", async (req, res) => {
       `${tenant}/data/Companies?$format=application/json;odata.metadata=none&cross-company=true&$select=DataArea,Name`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    const Entity6 = axios.get(
+      `${tenant}/data/Warehouses?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=dataAreaId eq '${mainReply.SystemUser.Company}'&$select=WarehouseId,OperationalSiteId`,
+      { headers: { Authorization: "Bearer " + token } }
+    );
 
     let userReply;
 
     await axios
-      .all([Entity3, Entity4, Entity5])
+      .all([Entity3, Entity4, Entity5, Entity6])
       .then(
         axios.spread(async (...responses) => {
           const Roles = responses[0].data.value.map((Rol) => {
@@ -142,6 +146,7 @@ router.post("/", async (req, res) => {
           });
           const SalesUnitMember = responses[1].data.value[0];
           const Companies = responses[2].data.value;
+          const Warehouses = responses[3].data.value;
 
           userReply = {
             UserId:
@@ -193,7 +198,8 @@ router.post("/", async (req, res) => {
                 ? SalesUnitMember.SalesManager
                 : null,
             Companies,
-            Roles
+            Roles,
+            Warehouses
           };
         })
       )
