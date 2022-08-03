@@ -106,11 +106,11 @@ router.post("/", async (req, res) => {
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity3 = axios.get(
-      `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,AvailOrdered,Ordered,ItemId${
+      `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=AvailPhysical,ItemId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'${
         siteId && locationId
-          ? ` and InventSiteId eq '${siteId}' and InventLocationId eq '${locationId}' and ClosedQty eq Microsoft.Dynamics.DataEntities.NoYes'No'`
+          ? ` and InventSiteId eq '${siteId}' and InventLocationId eq '${locationId}' and ClosedQty eq Microsoft.Dynamics.DataEntities.NoYes'No' and InventStatusId eq 'DISPONIBLE'`
           : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
