@@ -144,7 +144,7 @@ router.post("/", async (req, res) => {
           const Roles = responses[0].data.value.map((Rol) => {
             return { Name: Rol.SecurityRoleName };
           });
-          const SalesUnitMember = responses[1].data.value[0];
+          const SalesUnitMember = responses[1].data.value;
           const Companies = responses[2].data.value;
           const Warehouses = responses[3].data.value;
 
@@ -177,26 +177,7 @@ router.post("/", async (req, res) => {
               mainReply.Worker && mainReply.Worker.Name
                 ? mainReply.Worker.Name
                 : null,
-            SalesUnitId:
-              SalesUnitMember && SalesUnitMember.SalesUnitId
-                ? SalesUnitMember.SalesUnitId
-                : null,
-            SalesPersonWorker:
-              SalesUnitMember && SalesUnitMember.SalesPersonWorker
-                ? SalesUnitMember.SalesPersonWorker
-                : null,
-            MemberId:
-              SalesUnitMember && SalesUnitMember.MemberId
-                ? SalesUnitMember.MemberId
-                : null,
-            ParentId:
-              SalesUnitMember && SalesUnitMember.ParentId
-                ? SalesUnitMember.ParentId
-                : null,
-            SalesManager:
-              SalesUnitMember && SalesUnitMember.SalesManager
-                ? SalesUnitMember.SalesManager
-                : null,
+            SalesUnitMember,
             Companies,
             Roles,
             Warehouses
@@ -220,20 +201,37 @@ router.post("/", async (req, res) => {
       });
 
     const selectEntityFields =
-      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode,DeliveryAddressCountryRegionId,CredManAccountStatusId";
-    const Entity13 = axios.get(
-      `${tenant}/data/CustomersV3?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${userReply.SalesUnitId}' and dataAreaId eq '${userReply.Company}'${selectEntityFields}`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
+      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode,DeliveryAddressCountryRegionId,CredManAccountStatusId,SalesDistrict";
+
+    let _CustomersV3 = [];
+
+    for (let i = 0; i < userReply.SalesUnitMember.length; i++) {
+      const _CustomersV3Item = axios.get(
+        `${tenant}/data/CustomersV3?$format=application/json;odata.metadata=none&cross-company=true&$filter=SalesDistrict eq '${userReply.SalesUnitMember[i].SalesUnitId}' and dataAreaId eq '${userReply.Company}'${selectEntityFields}`,
+        { headers: { Authorization: "Bearer " + token } }
+      );
+
+      _CustomersV3.push(_CustomersV3Item);
+    }
 
     await axios
-      .all([Entity13])
+      .all(_CustomersV3)
       .then(
         axios.spread(async (...responses) => {
+
+          let GAB_Customers =[];
+
+          for (let i = 0; i < responses.length; i++) {
+            const element = responses[i];
+            element.data.value.map((item2) =>
+              GAB_Customers.push(item2)
+            );
+          }
+
           const customersReply = {
             ...userReply,
-            GAB_Customers: responses[0].data.value,
-            GAB_CustomersCount: responses[0].data["@odata.count"],
+            GAB_Customers,
+            GAB_CustomersCount: GAB_Customers.length,
           };
 
           await client.set(entity + userEmail, JSON.stringify(customersReply), {
