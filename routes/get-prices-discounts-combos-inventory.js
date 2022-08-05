@@ -94,7 +94,7 @@ router.post("/", async (req, res) => {
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate}`,
+      }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation ne Microsoft.Dynamics.DataEntities.PriceType'PricePurch'`,
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity2 = axios.get(
@@ -103,6 +103,12 @@ router.post("/", async (req, res) => {
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'${
         groupId ? ` and GroupId eq '${groupId}'` : ""
       }`,
+      { headers: { Authorization: "Bearer " + token } }
+    );
+    const Entity4 = axios.get(
+      `${tenant}/data/ComboLines?$format=application/json;odata.metadata=none${
+        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+      }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity3 = axios.get(
@@ -117,28 +123,38 @@ router.post("/", async (req, res) => {
     );
 
     await axios
-      .all([Entity1, Entity2, Entity3])
+      .all([Entity1, Entity2, Entity3,Entity4])
       .then(
         axios.spread(async (...responses) => {
-          //1. 263754 14.03s 4.17 MB
-          //2. 207504 10.59s 3.33 MB
-          //3. 194379 10.31s 3.07 MB
-          //4. 158249 8.00s 2.37 MB
-          //5. 137879 6.99s 1.98 MB
+
+          const _InventsumsB = responses[2].data.value;
+
+          let InventsumsBI = [];
+
+
+          for (let i = 0; i < _InventsumsB.length; i++) {
+            const item1 = _InventsumsB[i];
+            let inArray = false;
+            
+            for (let j = 0; j < InventsumsBI.length; j++) {
+
+              if(item1.ItemId === InventsumsBI[j].ItemId){
+                InventsumsBI[j].AvailPhysical+= item1.AvailPhysical;
+                inArray = true;
+              }
+              
+            }
+
+            if(!inArray){
+              InventsumsBI.push(item1);
+            }
+          }
 
           const reply = {
-            PricedisctablesBI: responses[0].data.value, //62248 10.92s 1.12 MB - 2
-            ComboTables: responses[1].data.value, //22608 6.78s 442.54 KB - 3
-            ComboLines: [
-              {
-                ItemId: "",
-                ItemName: "",
-                Qty: 1,
-                Required: false,
-                ComboId: "",
-              },
-            ],
-            InventsumsBI: responses[2].data.value, //100008 12.89s 1.49 MB - 1
+            PricedisctablesBI: responses[0].data.value, 
+            ComboTables: responses[1].data.value,
+            ComboLines: responses[3].data.value,
+            InventsumsBI,
           };
 
           await client.set(
