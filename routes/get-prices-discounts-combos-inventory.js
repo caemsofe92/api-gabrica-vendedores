@@ -100,15 +100,21 @@ router.post("/", async (req, res) => {
     const Entity2 = axios.get(
       `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,GroupId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${userCompany}'${
-        groupId ? ` and GroupId eq '${groupId}'` : ""
-      }`,
+      }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity4 = axios.get(
       `${tenant}/data/ComboLines?$format=application/json;odata.metadata=none${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
+      { headers: { Authorization: "Bearer " + token } }
+    );
+    const Entity5 = axios.get(
+      `${tenant}/data/GABCAMP_Header_Campaign?$format=application/json;odata.metadata=none&$select=CampaignId,GiftDescription,CampaignName${
+        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
+      }&cross-company=true&$filter=Status eq Microsoft.Dynamics.DataEntities.GABCampaignStatus'Running' and dataAreaId eq '${userCompany}'${
+        groupId ? ` and GroupId eq '*${groupId}*'` : ""
+      }`,
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity3 = axios.get(
@@ -123,9 +129,14 @@ router.post("/", async (req, res) => {
     );
 
     await axios
-      .all([Entity1, Entity2, Entity3,Entity4])
+      .all([Entity1, Entity2, Entity3, Entity4, Entity5])
       .then(
         axios.spread(async (...responses) => {
+
+
+          
+
+
 
           const _InventsumsB = responses[2].data.value;
 
@@ -151,7 +162,8 @@ router.post("/", async (req, res) => {
           }
 
           const reply = {
-            PricedisctablesBI: responses[0].data.value, 
+            PricedisctablesBI: responses[0].data.value,
+            GABCAMP_Header_Campaign: responses[4].data.value,
             ComboTables: responses[1].data.value,
             ComboLines: responses[3].data.value,
             InventsumsBI,
