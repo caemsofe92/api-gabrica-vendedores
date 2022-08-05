@@ -89,7 +89,9 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const currentDate = moment().subtract(5, "hours").format("YYYY-MM-DDTHH:mm:ss-05:00");
+    const currentDate = moment()
+      .subtract(5, "hours")
+      .format("YYYY-MM-DDTHH:mm:ss-05:00");
 
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
@@ -132,33 +134,32 @@ router.post("/", async (req, res) => {
       .all([Entity1, Entity2, Entity3, Entity4, Entity5])
       .then(
         axios.spread(async (...responses) => {
+          const GABCAMP_Header_Campaign = responses[4].data.value.map(
+            (item) => item.CampaignId
+          );
 
-          const GABCAMP_Header_Campaign = responses[4].data.value.map(item => item.CampaignId);
-          console.log(responses[1].data.value);
-          const ComboTables = responses[1].data.value.filter(item => GABCAMP_Header_Campaign.includes(item.CampaignId));
+          const ComboTables = responses[1].data.value.filter((item) =>
+            GABCAMP_Header_Campaign.includes(item.CampaignId)
+          );
 
-          const ComboTablesIds = ComboTables.map(item => item.ComboId);
-          console.log(ComboTablesIds);
+          const ComboTablesIds = ComboTables.map((item) => item.ComboId);
 
           const _InventsumsB = responses[2].data.value;
 
           let InventsumsBI = [];
 
-
           for (let i = 0; i < _InventsumsB.length; i++) {
             const item1 = _InventsumsB[i];
             let inArray = false;
-            
-            for (let j = 0; j < InventsumsBI.length; j++) {
 
-              if(item1.ItemId === InventsumsBI[j].ItemId){
-                InventsumsBI[j].AvailPhysical+= item1.AvailPhysical;
+            for (let j = 0; j < InventsumsBI.length; j++) {
+              if (item1.ItemId === InventsumsBI[j].ItemId) {
+                InventsumsBI[j].AvailPhysical += item1.AvailPhysical;
                 inArray = true;
               }
-              
             }
 
-            if(!inArray){
+            if (!inArray) {
               InventsumsBI.push(item1);
             }
           }
@@ -166,7 +167,9 @@ router.post("/", async (req, res) => {
           const reply = {
             PricedisctablesBI: responses[0].data.value,
             ComboTables,
-            ComboLines: responses[3].data.value.filter(item => ComboTablesIds.includes(item.ComboId)),
+            ComboLines: responses[3].data.value.filter((item) =>
+              ComboTablesIds.includes(item.ComboId)
+            ),
             InventsumsBI,
           };
 
