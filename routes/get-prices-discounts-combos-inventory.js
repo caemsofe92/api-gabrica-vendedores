@@ -100,7 +100,7 @@ router.post("/", async (req, res) => {
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity2 = axios.get(
-      `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,CampaignId${
+      `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,CampaignId,NumberVariable${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and GABCampaign eq Microsoft.Dynamics.DataEntities.NoYes'Yes'`,
       { headers: { Authorization: "Bearer " + token } }
