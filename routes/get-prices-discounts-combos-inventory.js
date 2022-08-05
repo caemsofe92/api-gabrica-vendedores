@@ -114,7 +114,7 @@ router.post("/", async (req, res) => {
     const Entity5 = axios.get(
       `${tenant}/data/GABCAMP_Header_Campaign?$format=application/json;odata.metadata=none&$select=CampaignId,GiftDescription,CampaignName${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=Status eq Microsoft.Dynamics.DataEntities.GABCampaignStatus'Running' and dataAreaId eq '${userCompany}'${
+      }&cross-company=true&$filter=dataAreaId eq '${userCompany}'${
         groupId ? ` and GroupId eq '*${groupId}*'` : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
