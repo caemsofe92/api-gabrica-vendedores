@@ -201,7 +201,7 @@ router.post("/", async (req, res) => {
       });
 
     const selectEntityFields =
-      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode,DeliveryAddressCountryRegionId,CredManAccountStatusId,SalesDistrict";
+      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode,DeliveryAddressCountryRegionId,CredManAccountStatusId,SalesDistrict,TotalDiscountCode";
 
     let _CustomersV3 = [];
 
