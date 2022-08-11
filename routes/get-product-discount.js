@@ -153,10 +153,12 @@ router.post("/", async (req, res) => {
       .then(
         axios.spread(async (...responses) => {
           const reply = responses[0].data.value;
-
+  
+          const maxPercent = isFinite(Math.max.apply(Math, reply.map(function(o) { return o.Percent1; }))) ? Math.max.apply(Math, reply.map(function(o) { return o.Percent1; })) : 0;
+          
           await client.set(
             entity + ItemNumber + CustomerAccount,
-            JSON.stringify(reply),
+            JSON.stringify(maxPercent),
             {
               EX: 604800,
             }
@@ -164,7 +166,7 @@ router.post("/", async (req, res) => {
           return res.json({
             result: true,
             message: "OK",
-            response: reply,
+            response: maxPercent,
           });
         })
       )
