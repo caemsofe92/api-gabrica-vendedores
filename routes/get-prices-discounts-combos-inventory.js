@@ -96,7 +96,7 @@ router.post("/", async (req, res) => {
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation ne Microsoft.Dynamics.DataEntities.PriceType'PricePurch'`,
+      }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'PriceSales'`,
       { headers: { Authorization: "Bearer " + token } }
     );
     const Entity2 = axios.get(
