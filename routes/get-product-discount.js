@@ -143,7 +143,7 @@ router.post("/", async (req, res) => {
         (ItemCode eq Microsoft.Dynamics.DataEntities.PriceDiscProductCodeType'Table' and ItemRelation eq '${ItemNumber}') or 
         (ItemCode eq Microsoft.Dynamics.DataEntities.PriceDiscProductCodeType'GroupId' and ItemRelation eq '${SalesLineDiscountProductGroupCode}'))
    
-        and (QuantityAmountTo gt ${QuantityAmount} or QuantityAmountTo eq 0) and QuantityAmountFrom lt ${QuantityAmount}
+        and (QuantityAmountTo gt ${QuantityAmount} or QuantityAmountTo eq 0) and QuantityAmountFrom le ${QuantityAmount}
         )`,
       { headers: { Authorization: "Bearer " + token } }
     );
