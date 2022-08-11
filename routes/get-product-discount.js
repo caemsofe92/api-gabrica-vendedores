@@ -49,15 +49,6 @@ router.post("/", async (req, res) => {
     if (!userCompany || userCompany.length === 0)
       throw new Error("userCompany is Mandatory");
 
-    if (
-      !SalesLineDiscountProductGroupCode ||
-      SalesLineDiscountProductGroupCode.length === 0
-    )
-      throw new Error("SalesLineDiscountProductGroupCode is Mandatory");
-
-    if (!LineDiscountCode || LineDiscountCode.length === 0)
-      throw new Error("LineDiscountCode is Mandatory");
-
     if (!ItemNumber || ItemNumber.length === 0)
       throw new Error("ItemNumber is Mandatory");
 
