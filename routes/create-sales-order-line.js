@@ -63,14 +63,16 @@ router.post("/", async (req, res) => {
         EX: 3599,
       });
     }
-    /*
+
     let _salesOrder;
    
     if (salesOrder) {
       _salesOrder = await axios
         .patch(
           `${tenant}/data/SalesOrderHeadersV2(SalesOrderNumber='${salesOrder.SalesOrderNumber}',dataAreaId='${salesOrder.dataAreaId}')?cross-company=true`,
-          salesOrder,
+          {
+            DocumentStatus: "Confirmation"
+          },
           {
             headers: { Authorization: "Bearer " + token },
           }
@@ -94,7 +96,7 @@ router.post("/", async (req, res) => {
 
     _salesOrder =
       _salesOrder && _salesOrder.data === "" ? "Modified" : "Unchanged";
-    */
+
     let _salesOrderLine = [];
 
     if (salesOrderLine && salesOrderLine.length > 0) {
@@ -135,6 +137,7 @@ router.post("/", async (req, res) => {
             error.response.data.error.innererror &&
             error.response.data.error.innererror.message
           ) {
+            console.log(error.response.data.error.innererror);
             throw new Error(error.response.data.error.innererror.message);
           } else if (error.request) {
             throw new Error(error.request);
@@ -296,9 +299,10 @@ router.post("/", async (req, res) => {
     return res.json({
       result: true,
       message: "OK",
-      //_salesOrder,
+      _salesOrder,
       _salesOrderLine,
     });
+   
   } catch (error) {
     return res.status(500).json({
       result: false,
