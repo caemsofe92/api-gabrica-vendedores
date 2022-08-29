@@ -23,6 +23,7 @@ var deleteSalesOrder = require("./routes/delete-sales-order");
 var createSalesOrderLine = require("./routes/create-sales-order-line");
 var updateSalesOrderLine = require("./routes/update-sales-order-line");
 var deleteSalesOrderLine = require("./routes/delete-sales-order-line");
+var getComboDetail = require("./routes/get-combo-detail");
 
 var app = express();
 app.use(compression());
@@ -48,6 +49,7 @@ app.use("/delete-sales-order", deleteSalesOrder);
 app.use("/create-sales-order-line", createSalesOrderLine);
 app.use("/update-sales-order-line", updateSalesOrderLine);
 app.use("/delete-sales-order-line", deleteSalesOrderLine);
+app.use("/get-combo-detail", getComboDetail);
 
 app.use(function (req, res, next) {
   next(createError(404));
