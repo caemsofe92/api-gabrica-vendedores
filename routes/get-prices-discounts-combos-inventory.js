@@ -105,13 +105,8 @@ router.post("/", async (req, res) => {
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and GABCampaign eq Microsoft.Dynamics.DataEntities.NoYes'Yes'`,
       { headers: { Authorization: "Bearer " + token } }
     );
+  
     const Entity4 = axios.get(
-      `${tenant}/data/ComboLines?$format=application/json;odata.metadata=none${
-        isTest && numberOfElements ? "&$top=" + numberOfElements : ""
-      }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
-      { headers: { Authorization: "Bearer " + token } }
-    );
-    const Entity5 = axios.get(
       `${tenant}/data/GABCAMP_Header_Campaign?$format=application/json;odata.metadata=none&$select=CampaignId,GiftDescription,CampaignName${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'${
@@ -131,18 +126,16 @@ router.post("/", async (req, res) => {
     );
 
     await axios
-      .all([Entity1, Entity2, Entity3, Entity4, Entity5])
+      .all([Entity1, Entity2, Entity3, Entity4])
       .then(
         axios.spread(async (...responses) => {
-          const GABCAMP_Header_Campaign = responses[4].data.value.map(
+          const GABCAMP_Header_Campaign = responses[3].data.value.map(
             (item) => item.CampaignId
           );
 
           const ComboTables = responses[1].data.value.filter((item) =>
             GABCAMP_Header_Campaign.includes(item.CampaignId)
           );
-
-          const ComboTablesIds = ComboTables.map((item) => item.ComboId);
 
           const _InventsumsB = responses[2].data.value;
 
@@ -167,9 +160,6 @@ router.post("/", async (req, res) => {
           const reply = {
             PricedisctablesBI: responses[0].data.value,
             ComboTables,
-            ComboLines: responses[3].data.value.filter((item) =>
-              ComboTablesIds.includes(item.ComboId)
-            ),
             InventsumsBI,
           };
 
