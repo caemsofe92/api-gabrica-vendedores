@@ -124,7 +124,7 @@ router.post("/", async (req, res) => {
       */
 
     const Entity1 = axios.get(
-      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and relation eq Microsoft.Dynamics.DataEntities.PriceType'LineDiscSales'
+      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'LineDiscSales'
       and (
         (AccountCode eq Microsoft.Dynamics.DataEntities.PriceDiscPartyCodeType'All' or 
         (AccountCode eq Microsoft.Dynamics.DataEntities.PriceDiscPartyCodeType'Table' and AccountRelation eq '${CustomerAccount}') or 
