@@ -105,11 +105,11 @@ router.post("/", async (req, res) => {
       .subtract(5, "hours")
       .format("YYYY-MM-DDTHH:mm:ss-05:00");
 
-    const selectEntity2Fields =
+    const selectEntity1Fields =
       "&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount";
 
     /*
-      console.log(`${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'LineDiscSales'
+      console.log(`${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&cross-company=true${selectEntity1Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'LineDiscSales'
       and (
         ((AccountCode eq Microsoft.Dynamics.DataEntities.PriceDiscPartyCodeType'All' and AccountRelation eq '') or 
         (AccountCode eq Microsoft.Dynamics.DataEntities.PriceDiscPartyCodeType'Table' and AccountRelation eq '${CustomerAccount}') or 
@@ -124,7 +124,7 @@ router.post("/", async (req, res) => {
       */
 
     const Entity1 = axios.get(
-      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'LineDiscSales'
+      `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&cross-company=true${selectEntity1Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'LineDiscSales'
       and (
         (AccountCode eq Microsoft.Dynamics.DataEntities.PriceDiscPartyCodeType'All' or 
         (AccountCode eq Microsoft.Dynamics.DataEntities.PriceDiscPartyCodeType'Table' and AccountRelation eq '${CustomerAccount}') or 
@@ -139,17 +139,51 @@ router.post("/", async (req, res) => {
       { headers: { Authorization: "Bearer " + token } }
     );
 
+    const selectEntity2Fields =
+    "&$select=DiscountPercentage,FromQty,ToQty,FromDate,ToDate,ItemType,CustomerType,AccountGroup,CodeGroup";
+    
+    /*
+    const Entity2 = axios.get(
+      `${tenant}/data/CampaignsJournalDiscounts?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and Active eq Microsoft.Dynamics.DataEntities.NoYes'Yes'
+      and (
+        (
+        (CustomerType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Table' and AccountGroup eq '${CustomerAccount}') ) and
+        
+        (
+        (ItemType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Table' and CodeGroup eq '${ItemNumber}'))
+   
+        and (ToQty gt ${QuantityAmount} or ToQty eq 0) and FromQty le ${QuantityAmount}
+        )`,
+      { headers: { Authorization: "Bearer " + token } }
+    );
+    */
+    
+    const Entity2 = axios.get(
+      `${tenant}/data/CampaignsJournalDiscounts?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and (
+        (
+        (CustomerType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Table' and AccountGroup eq '${CustomerAccount}') ) and
+        
+        (
+        (ItemType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Table' and CodeGroup eq '${ItemNumber}'))
+   
+        and (ToQty gt ${QuantityAmount} or ToQty eq 0) and FromQty le ${QuantityAmount}
+        )`,
+      { headers: { Authorization: "Bearer " + token } }
+    );
+
     await axios
-      .all([Entity1])
+      .all([Entity1, Entity2])
       .then(
         axios.spread(async (...responses) => {
           const reply = responses[0].data.value;
-  
+          const reply2 = responses[1].data.value;
+
           const maxPercent = isFinite(Math.max.apply(Math, reply.map(function(o) { return o.Percent1; }))) ? Math.max.apply(Math, reply.map(function(o) { return o.Percent1; })) : 0;
-          
+          const maxPercent2 = isFinite(Math.max.apply(Math, reply2.map(function(o) { return o.DiscountPercentage; }))) ? Math.max.apply(Math, reply2.map(function(o) { return o.DiscountPercentage; })) : 0;
+
           await client.set(
             entity + ItemNumber + CustomerAccount,
-            JSON.stringify(maxPercent),
+            JSON.stringify(maxPercent > maxPercent2 ? maxPercent : maxPercent2),
             {
               EX: 604800,
             }
@@ -157,7 +191,7 @@ router.post("/", async (req, res) => {
           return res.json({
             result: true,
             message: "OK",
-            response: maxPercent,
+            response: maxPercent > maxPercent2 ? maxPercent : maxPercent2,
           });
         })
       )
