@@ -65,6 +65,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    //Entidad Extendida
     let _salesOrder = await axios
       .post(
         `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none`,

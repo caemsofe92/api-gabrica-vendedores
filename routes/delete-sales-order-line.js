@@ -66,6 +66,7 @@ router.post("/", async (req, res) => {
     let _salesOrderLine;
 
     if (salesOrderLine) {
+      //Entidad Extendida
       _salesOrderLine = await axios
         .delete(
           `${tenant}/data/CDSSalesOrderLinesV2(SalesOrderNumber='${salesOrderLine.SalesOrderNumber}',dataAreaId='${salesOrderLine.dataAreaId}',LineCreationSequenceNumber=${salesOrderLine.LineCreationSequenceNumber})?cross-company=true`,

@@ -82,12 +82,15 @@ router.post("/", async (req, res) => {
 
     let mainReply;
 
+    //Nueva Entidad
     const Entity1 = axios.get(
-      `${tenant}/data/SystemUsers?$format=application/json;odata.metadata=none&cross-company=true&$filter=Alias eq '${userEmail}'&$select=UserID,Company,UserInfo_language,Enabled,UserName`,
+      `${tenant}/data/GAB_SystemUsers?$format=application/json;odata.metadata=none&cross-company=true&$filter=Alias eq '${userEmail}'&$select=UserID,Company,UserInfo_language,Enabled,UserName`,
       { headers: { Authorization: "Bearer " + token } }
     );
+
+    //Nueva Entidad
     const Entity2 = axios.get(
-      `${tenant}/data/Workers?$format=application/json;odata.metadata=none&cross-company=true&$filter=IdentityEmail eq '${userEmail}'&$select=PersonnelNumber,Name`,
+      `${tenant}/data/GAB_Workers?$format=application/json;odata.metadata=none&cross-company=true&$filter=IdentityEmail eq '${userEmail}'&$select=PersonnelNumber,Name`,
       { headers: { Authorization: "Bearer " + token } }
     );
 
@@ -117,19 +120,25 @@ router.post("/", async (req, res) => {
         }
       });
 
+    //Nueva Entidad
     const Entity3 = axios.get(
-      `${tenant}/data/SecurityUserRoles?$format=application/json;odata.metadata=none&cross-company=true&$filter=UserId eq '${mainReply.SystemUser.UserID}'&$select=SecurityRoleName`,
+      `${tenant}/data/GAB_SecurityUserRoles?$format=application/json;odata.metadata=none&cross-company=true&$filter=UserId eq '${mainReply.SystemUser.UserID}'&$select=SecurityRoleName`,
       { headers: { Authorization: "Bearer " + token } }
     );
     
+    //Entidad Anterior
     const Entity4 = axios.get(
       `${tenant}/data/SmmsalesunitmembersBI?$format=application/json;odata.metadata=none&cross-company=true&$filter=Identification eq '${mainReply.Worker.PersonnelNumber}'&$select=SalesUnitId,SalesPersonWorker,MemberId,ParentId,SalesManager`,
       { headers: { Authorization: "Bearer " + token } }
     );
+
+    //Entidad Anterior
     const Entity5 = axios.get(
       `${tenant}/data/Companies?$format=application/json;odata.metadata=none&cross-company=true&$select=DataArea,Name`,
       { headers: { Authorization: "Bearer " + token } }
     );
+
+    //Entidad Anterior - No se Solicito
     const Entity6 = axios.get(
       `${tenant}/data/Warehouses?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=dataAreaId eq '${mainReply.SystemUser.Company}'&$select=WarehouseId,OperationalSiteId`,
       { headers: { Authorization: "Bearer " + token } }
@@ -206,8 +215,9 @@ router.post("/", async (req, res) => {
     let _CustomersV3 = [];
 
     for (let i = 0; i < userReply.SalesUnitMember.length; i++) {
+      //Nueva Entidad
       const _CustomersV3Item = axios.get(
-        `${tenant}/data/CustomersV3?$format=application/json;odata.metadata=none&cross-company=true&$filter=SalesDistrict eq '${userReply.SalesUnitMember[i].SalesUnitId}' and dataAreaId eq '${userReply.Company}'${selectEntityFields}`,
+        `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$filter=SalesDistrict eq '${userReply.SalesUnitMember[i].SalesUnitId}' and dataAreaId eq '${userReply.Company}'${selectEntityFields}`,
         { headers: { Authorization: "Bearer " + token } }
       );
 

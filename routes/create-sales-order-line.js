@@ -67,6 +67,7 @@ router.post("/", async (req, res) => {
     let _salesOrder;
    
     if (salesOrder) {
+      //Entidad Extendida
       _salesOrder = await axios
         .patch(
           `${tenant}/data/SalesOrderHeadersV2(SalesOrderNumber='${salesOrder.SalesOrderNumber}',dataAreaId='${salesOrder.dataAreaId}')?cross-company=true`,
@@ -105,6 +106,7 @@ router.post("/", async (req, res) => {
       for (let i = 0; i < salesOrderLine.length; i++) {
         const line = salesOrderLine[i];
 
+        //Entidad Extendida
         const SalesOrderLinesItem = axios.post(
           `${tenant}/data/CDSSalesOrderLinesV2?cross-company=true`,
           {

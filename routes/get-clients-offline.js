@@ -83,11 +83,11 @@ router.post("/", async (req, res) => {
         EX: 3599,
       });
     }
-
     const selectEntity1Fields =
-      "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode,DeliveryAddressCountryRegionId,CredManAccountStatusId";
+    "&$select=PartyNumber,CustomerAccount,PaymentTerms,PartyType,OrganizationName,SalesTaxGroup,LineDiscountCode,DeliveryAddressCountryRegionId,CredManAccountStatusId";
+    //Nueva Entidad
     const Entity1 = axios.get(
-      `${tenant}/data/CustomersV3?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${salesDistrict}' and dataAreaId eq '${userCompany}'${selectEntity1Fields}${
+      `${tenant}/data/GAB_Customers?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesDistrict eq '${salesDistrict}' and dataAreaId eq '${userCompany}'${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
@@ -95,8 +95,9 @@ router.post("/", async (req, res) => {
 
     const selectEntity2Fields =
       "&$select=PartyNumber,Description,Address,Street,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE,LocationId";
+    //Nueva Entidad
     const Entity2 = axios.get(
-      `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none$&$count=true&cross-company=true${selectEntity2Fields}${
+      `${tenant}/data/GAB_PartyLocationPostalAddresses?$format=application/json;odata.metadata=none$&$count=true&cross-company=true${selectEntity2Fields}${
         testMode ? "&$top=5" : ""
       }&$filter=DMGBSalesDistrictId_PE eq '${salesDistrict}'`,
       { headers: { Authorization: "Bearer " + token } }

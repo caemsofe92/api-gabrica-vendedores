@@ -84,18 +84,23 @@ router.post("/", async (req, res) => {
 
     const currentDate = moment().subtract(5, "hours").format("YYYY-MM-DDTHH:mm:ss-05:00");
 
+    //Entidad Anterior
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${company}' and ToDate gt ${currentDate} and FromDate lt ${currentDate}`,
       { headers: { Authorization: "Bearer " + token } }
     );
+
+    //Entidad Anterior
     const Entity2 = axios.get(
       `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,GroupId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${company}'`,
       { headers: { Authorization: "Bearer " + token } }
     );
+
+    //Entidad Anterior
     const Entity3 = axios.get(
       `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=OnOrder,InventStatusId,AvailOrdered,Ordered,ItemId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""

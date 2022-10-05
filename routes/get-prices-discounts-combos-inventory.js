@@ -93,19 +93,21 @@ router.post("/", async (req, res) => {
       .subtract(5, "hours")
       .format("YYYY-MM-DDTHH:mm:ss-05:00");
 
+    //Entidad Anterior
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&$select=relation,Currency,AccountCode,AccountRelation,ItemCode,ItemRelation,UnitId,PriceUnit,QuantityAmountFrom,QuantityAmountTo,Percent1,Amount${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'PriceSales'`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    //Entidad Anterior
     const Entity2 = axios.get(
       `${tenant}/data/ComboTables?$format=application/json;odata.metadata=none&$select=ComboId,Description,FromQty,ToQty,FromDate,ToDate,PercentDesc,CampaignId,NumberVariable${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and GABCampaign eq Microsoft.Dynamics.DataEntities.NoYes'Yes'`,
       { headers: { Authorization: "Bearer " + token } }
     );
-  
+    //Entidad Anterior - No se Solicito
     const Entity4 = axios.get(
       `${tenant}/data/GABCAMP_Header_Campaign?$format=application/json;odata.metadata=none&$select=CampaignId,GiftDescription,CampaignName${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
@@ -114,6 +116,7 @@ router.post("/", async (req, res) => {
       }`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    //Entidad Anterior
     const Entity3 = axios.get(
       `${tenant}/data/InventsumsBI?$format=application/json;odata.metadata=none&$select=AvailPhysical,ItemId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""

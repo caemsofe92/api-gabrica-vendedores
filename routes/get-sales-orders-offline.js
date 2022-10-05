@@ -85,6 +85,7 @@ router.post("/", async (req, res) => {
 
     const selectEntity1Fields =
       "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription,DeliveryAddressCountryRegionId";
+    //Entidad Extendida
     const Entity1 = axios.get(
       `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=SalesUnitId eq '${SalesUnitId}'${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
@@ -105,6 +106,7 @@ router.post("/", async (req, res) => {
           let SalesOrderLinesGet = [];
 
           for (let i = 0; i < SalesOrderHeaders.length; i++) {
+            //Entidad Extendida
             const SalesOrderLinesItem = axios.get(
               `${tenant}/data/CDSSalesOrderLinesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=SalesOrderNumber eq '${SalesOrderHeaders[i].SalesOrderNumber}'${selectEntity2Fields}`,
               { headers: { Authorization: "Bearer " + token } }

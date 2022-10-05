@@ -81,32 +81,37 @@ router.post("/", async (req, res) => {
       });
     }
 
+    //Nueva Entidad
     const Entity1 = axios.get(
-      `${tenant}/data/RetailEcoResProductTranslation?$format=application/json;odata.metadata=none&$select=EcoResProduct_DisplayProductNumber,Product,Name${
+      `${tenant}/data/GAB_RetailEcoResProductTranslations?$format=application/json;odata.metadata=none&$select=EcoResProduct_DisplayProductNumber,Product,Name${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    //Nueva Entidad
     const Entity2 = axios.get(
-      `${tenant}/data/ReleasedProductsV2?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol${
+      `${tenant}/data/GAB_ReleasedProducts?$format=application/json;odata.metadata=none&$select=ItemNumber,SalesLineDiscountProductGroupCode,SalesSalesTaxItemGroupCode,InventoryUnitSymbol${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    //Entidad Anterior
     const Entity3 = axios.get(
       `${tenant}/data/InventitemsalessetupsBI?$format=application/json;odata.metadata=none&$select=ItemId,Stopped${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true&$filter=dataAreaId eq '${userCompany}'`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    //Nueva Entidad
     const Entity4 = axios.get(
-      `${tenant}/data/RetailEcoResCategoryHierarchy?$format=application/json;odata.metadata=none&$select=Name,AxRecId${
+      `${tenant}/data/GAB_RetailEcoResCategoryHierarchys?$format=application/json;odata.metadata=none&$select=Name,AxRecId${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true`,
       { headers: { Authorization: "Bearer " + token } }
     );
+    //Nueva Entidad
     const Entity5 = axios.get(
-      `${tenant}/data/RetailEcoResCategory?$format=application/json;odata.metadata=none&$select=Name,CategoryHierarchy,AxRecId,EcoResCategory1_Name${
+      `${tenant}/data/GAB_RetailEcoResCategory?$format=application/json;odata.metadata=none&$select=Name,CategoryHierarchy,AxRecId,EcoResCategory1_Name${
         isTest && numberOfElements ? "&$top=" + numberOfElements : ""
       }&cross-company=true`,
       { headers: { Authorization: "Bearer " + token } }
@@ -125,6 +130,7 @@ router.post("/", async (req, res) => {
           let _EcoresproductcategoriesBI = [];
 
           for (let i = 0; i < RetailEcoResCategoryHierarchy.length; i++) {
+            //Entidad Anterior
             const _EcoresproductcategoriesBIItem = axios.get(
               `${tenant}/data/EcoresproductcategoriesBI?$format=application/json;odata.metadata=none&$select=CategoryHierarchy,Product,Category${
                 isTest && numberOfElements ? "&$top=" + numberOfElements : ""

@@ -68,6 +68,7 @@ router.post("/", async (req, res) => {
     let _salesOrder;
    
     if (salesOrder) {
+      //Entidad Extendida
       _salesOrder = await axios
         .patch(
           `${tenant}/data/SalesOrderHeadersV2(SalesOrderNumber='${salesOrder.SalesOrderNumber}',dataAreaId='${salesOrder.dataAreaId}')?cross-company=true`,

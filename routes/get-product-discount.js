@@ -122,7 +122,7 @@ router.post("/", async (req, res) => {
         and (QuantityAmountTo gt ${QuantityAmount} or QuantityAmountTo eq 0) and QuantityAmountFrom lt ${QuantityAmount}
         )`);
       */
-
+    //Entidad Anterior
     const Entity1 = axios.get(
       `${tenant}/data/PricedisctablesBI?$format=application/json;odata.metadata=none&cross-company=true${selectEntity1Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and relation eq Microsoft.Dynamics.DataEntities.PriceType'LineDiscSales'
       and (
@@ -158,6 +158,7 @@ router.post("/", async (req, res) => {
     );
     */
     
+    //Nueva Entidad
     const Entity2 = axios.get(
       `${tenant}/data/CampaignsJournalDiscounts?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and (
         (

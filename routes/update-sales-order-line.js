@@ -66,6 +66,7 @@ router.post("/", async (req, res) => {
     if (salesOrderLines && salesOrderLines.length > 0) {
       for (let i = 0; i < salesOrderLines.length; i++) {
         const line = salesOrderLines[i];
+        //Entidad Extendida
         const __salesOrderLines = await axios
           .patch(
             `${tenant}/data/CDSSalesOrderLinesV2(SalesOrderNumber='${line.SalesOrderNumber}',dataAreaId='${line.dataAreaId}',LineCreationSequenceNumber=${line.LineCreationSequenceNumber})?cross-company=true`,

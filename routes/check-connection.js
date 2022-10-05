@@ -59,6 +59,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    //Entidad Anterior
     const Entity1 = axios.get(
       `${tenant}/data/Companies?$format=application/json;odata.metadata=none&cross-company=true&$select=DataArea`,
       { headers: { Authorization: "Bearer " + token } }
