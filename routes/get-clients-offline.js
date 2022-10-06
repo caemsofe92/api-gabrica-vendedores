@@ -97,7 +97,7 @@ router.post("/", async (req, res) => {
       "&$select=PartyNumber,Description,Address,Street,IsPrimary,DMGBInventSiteId_PE,DMGBInventLocationId_PE,LocationId";
     //Nueva Entidad
     const Entity2 = axios.get(
-      `${tenant}/data/GAB_PartyLocationPostalAddresses?$format=application/json;odata.metadata=none$&$count=true&cross-company=true${selectEntity2Fields}${
+      `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none$&$count=true&cross-company=true${selectEntity2Fields}${
         testMode ? "&$top=5" : ""
       }&$filter=DMGBSalesDistrictId_PE eq '${salesDistrict}'`,
       { headers: { Authorization: "Bearer " + token } }

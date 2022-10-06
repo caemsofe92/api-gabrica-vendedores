@@ -85,7 +85,7 @@ router.post("/", async (req, res) => {
 
     //Nueva Entidad
     const Entity1 = axios.get(
-      `${tenant}/data/GAB_PartyLocationPostalAddresses?$format=application/json;odata.metadata=none&cross-company=true&$filter=PartyNumber eq '${customerPartyNumber}'${selectEntity2Fields}`,
+      `${tenant}/data/PartyLocationPostalAddressesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=PartyNumber eq '${customerPartyNumber}'${selectEntity2Fields}`,
       { headers: { Authorization: "Bearer " + token } }
     );
 
