@@ -64,41 +64,6 @@ router.post("/", async (req, res) => {
       });
     }
 
-    let _salesOrder;
-   
-    if (salesOrder) {
-      //Entidad Extendida
-      _salesOrder = await axios
-        .post(
-          `${tenant}/api/services/GAB_SalesOrderConfirmationSG/GAB_SalesOrderConfirmationService/confirmSO`,
-          {
-            _salesId: salesOrder.SalesOrderNumber,
-            _dataAreaId: salesOrder.dataAreaId
-          },
-          {
-            headers: { Authorization: "Bearer " + token },
-          }
-        )
-        .catch(function (error) {
-          if (
-            error.response &&
-            error.response.data &&
-            error.response.data.error &&
-            error.response.data.error.innererror &&
-            error.response.data.error.innererror.message
-          ) {
-            throw new Error(error.response.data.error.innererror.message);
-          } else if (error.request) {
-            throw new Error(error.request);
-          } else {
-            throw new Error("Error", error.message);
-          }
-        });
-    }
-
-    _salesOrder =
-      _salesOrder && _salesOrder.data === "" ? "Modified" : "Unchanged";
-
     let _salesOrderLine = [];
 
     if (salesOrderLine && salesOrderLine.length > 0) {
@@ -149,6 +114,42 @@ router.post("/", async (req, res) => {
           }
         });
     }
+
+    let _salesOrder;
+   
+    if (salesOrder) {
+      //Entidad Extendida
+      _salesOrder = await axios
+        .post(
+          `${tenant}/api/services/GAB_SalesOrderConfirmationSG/GAB_SalesOrderConfirmationService/confirmSO`,
+          {
+            _salesId: salesOrder.SalesOrderNumber,
+            _dataAreaId: salesOrder.dataAreaId
+          },
+          {
+            headers: { Authorization: "Bearer " + token },
+          }
+        )
+        .catch(function (error) {
+          if (
+            error.response &&
+            error.response.data &&
+            error.response.data.error &&
+            error.response.data.error.innererror &&
+            error.response.data.error.innererror.message
+          ) {
+            throw new Error(error.response.data.error.innererror.message);
+          } else if (error.request) {
+            throw new Error(error.request);
+          } else {
+            throw new Error("Error", error.message);
+          }
+        });
+    }
+
+    _salesOrder = _salesOrder.data;
+
+    
 
     /*
     if (email) {
