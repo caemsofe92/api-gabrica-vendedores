@@ -69,7 +69,7 @@ router.post("/", async (req, res) => {
     if (salesOrder) {
       //Entidad Extendida
       _salesOrder = await axios
-        .patch(
+        .post(
           `${tenant}/api/services/GAB_SalesOrderConfirmationSG/GAB_SalesOrderConfirmationService/confirmSO`,
           {
             _salesId: salesOrder.SalesOrderNumber,
@@ -305,7 +305,7 @@ router.post("/", async (req, res) => {
       _salesOrder,
       _salesOrderLine,
     });
-   
+    
   } catch (error) {
     return res.status(500).json({
       result: false,
