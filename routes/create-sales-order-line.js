@@ -70,9 +70,10 @@ router.post("/", async (req, res) => {
       //Entidad Extendida
       _salesOrder = await axios
         .patch(
-          `${tenant}/data/SalesOrderHeadersV2(SalesOrderNumber='${salesOrder.SalesOrderNumber}',dataAreaId='${salesOrder.dataAreaId}')?cross-company=true`,
+          `${tenant}/api/services/GAB_SalesOrderConfirmationSG/GAB_SalesOrderConfirmationService/confirmSO`,
           {
-            DocumentStatus: "Confirmation"
+            _salesId: salesOrder.SalesOrderNumber,
+            _dataAreaId: salesOrder.dataAreaId
           },
           {
             headers: { Authorization: "Bearer " + token },
