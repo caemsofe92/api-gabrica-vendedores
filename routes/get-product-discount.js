@@ -140,7 +140,7 @@ router.post("/", async (req, res) => {
     );
 
     const selectEntity2Fields =
-    "&$select=DiscountPercentage,FromQty,ToQty,FromDate,ToDate,ItemType,CustomerType,AccountGroup,CodeGroup";
+    "&$select=DiscountPercentage,FromQty,ToQty,FromDate,ToDate,ItemType,CustomerType,AccountGroup,CodeGroup,Active,CampaignId";
     
     /*
     const Entity2 = axios.get(
@@ -160,12 +160,13 @@ router.post("/", async (req, res) => {
     
     //Nueva Entidad
     const Entity2 = axios.get(
-      `${tenant}/data/CampaignsJournalDiscounts?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and (
+      `${tenant}/data/CampaignsJournalDiscounts?$format=application/json;odata.metadata=none&cross-company=true${selectEntity2Fields}&$filter=dataAreaId eq '${userCompany}' and ToDate gt ${currentDate} and FromDate lt ${currentDate} and Active eq Microsoft.Dynamics.DataEntities.NoYes'Yes' and (
         (
         (CustomerType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Table' and AccountGroup eq '${CustomerAccount}') ) and
         
         (
-        (ItemType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Table' and CodeGroup eq '${ItemNumber}'))
+        (ItemType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Table' and CodeGroup eq '${ItemNumber}') or 
+        (ItemType eq Microsoft.Dynamics.DataEntities.GABItemTypes'Group' and CodeGroup eq '${SalesLineDiscountProductGroupCode}'))
    
         and (ToQty gt ${QuantityAmount} or ToQty eq 0) and FromQty le ${QuantityAmount}
         )`,
