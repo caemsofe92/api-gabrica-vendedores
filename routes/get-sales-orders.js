@@ -84,7 +84,7 @@ router.post("/", async (req, res) => {
     }
 
     const selectEntity1Fields =
-      "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription,DeliveryAddressCountryRegionId,SalesOrderName,";
+      "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription,DeliveryAddressCountryRegionId,SalesOrderName,OrderCreationDateTime";
     //Entidad Extendida
     const Entity1 = axios.get(
       `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderTakerPersonnelNumber eq '${customer}'${selectEntity1Fields}${
