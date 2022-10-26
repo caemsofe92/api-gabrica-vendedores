@@ -87,7 +87,7 @@ router.post("/", async (req, res) => {
       "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription,DeliveryAddressCountryRegionId";
     //Entidad Extendida
     const Entity1 = axios.get(
-      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderingCustomerAccountNumber eq '${customer}'${selectEntity1Fields}${
+      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderTakerPersonnelNumber eq '${customer}'${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
