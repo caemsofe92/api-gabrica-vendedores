@@ -25,6 +25,10 @@ var updateSalesOrderLine = require("./routes/update-sales-order-line");
 var deleteSalesOrderLine = require("./routes/delete-sales-order-line");
 var getComboDetail = require("./routes/get-combo-detail");
 
+var createSalesOrderLineConsumer = require("./routes/create-sales-order-line-consumer");
+
+createSalesOrderLineConsumer();
+
 var app = express();
 app.use(compression());
 app.use(cookieParser());
