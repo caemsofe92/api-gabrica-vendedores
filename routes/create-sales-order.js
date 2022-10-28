@@ -14,7 +14,6 @@ router.post("/", async (req, res) => {
       req.query.environment || (req.body && req.body.environment);
     const salesOrder =
       req.query.salesOrder || (req.body && req.body.salesOrder);
-    const email = req.query.email || (req.body && req.body.email);
 
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
