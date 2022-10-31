@@ -4,10 +4,10 @@ const amqp = require('amqplib');
 
 const rabbitSettings = {
     protocol: 'amqp',
-    hostname: '20.242.102.13',
-    port: 5672,
-    username: 'gabricauser',
-    password: 'SrfConsultores2020***',
+    hostname: process.env.RABBIT_HOSTNAME,
+    port: process.env.RABBIT_PORT,
+    username: process.env.RABBIT_USERNAME,
+    password: process.env.RABBIT_PASSWORD,
     authMechanism: ['PLAIN','AMQPLAIN','EXTERNAL'],
     vhost: '/'
 };
@@ -48,8 +48,22 @@ router.post("/", async (req, res) => {
 
     const conn = await amqp.connect(rabbitSettings);
     const channel = await conn.createChannel();
-    await channel.assertQueue("SalesOrders");
-    await channel.sendToQueue("SalesOrders", Buffer.from(JSON.stringify(req.body)));
+    await channel.assertQueue("SalesOrderLines");
+
+    for (let i = 0; i < salesOrderLine.length; i++) {
+      const _salesOrderLine = salesOrderLine[i];
+      await channel.sendToQueue("SalesOrderLines", Buffer.from(JSON.stringify({
+        tenantUrl,
+        clientId,
+        clientSecret,
+        tenant,
+        environment,
+        salesOrder,
+        salesOrderLine: _salesOrderLine,
+        salesOrderLineIndex: i + 1,
+        salesOrderLineLength: salesOrderLine.length
+      })));
+    }
 
     return res.json({
       result: true,

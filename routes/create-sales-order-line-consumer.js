@@ -6,10 +6,10 @@ const amqp = require("amqplib");
 
 const rabbitSettings = {
   protocol: "amqp",
-  hostname: "20.242.102.13",
-  port: 5672,
-  username: "gabricauser",
-  password: "SrfConsultores2020***",
+  hostname: process.env.RABBIT_HOSTNAME,
+  port: process.env.RABBIT_PORT,
+  username: process.env.RABBIT_USERNAME,
+  password: process.env.RABBIT_PASSWORD,
   authMechanism: ["PLAIN", "AMQPLAIN", "EXTERNAL"],
   vhost: "/",
 };
@@ -20,8 +20,7 @@ async function connect() {
   try {
     const conn = await amqp.connect(rabbitSettings);
     const channel = await conn.createChannel();
-
-    channel.consume("SalesOrders", async (msg) => {
+    channel.consume("SalesOrderLines", async (msg) => {
       const body = JSON.parse(msg.content.toString());
 
       const tenantUrl = body && body.tenantUrl;
@@ -31,6 +30,8 @@ async function connect() {
       const environment = body && body.environment;
       const salesOrder = body && body.salesOrder;
       const salesOrderLine = body && body.salesOrderLine;
+      const salesOrderLineIndex = body && body.salesOrderLineIndex;
+      const salesOrderLineLength = body && body.salesOrderLineLength;
 
       if (!client.isOpen) client.connect();
 
@@ -63,63 +64,39 @@ async function connect() {
           EX: 3599,
         });
       }
-
-      let _salesOrderLine = [];
-
-      if (salesOrderLine && salesOrderLine.length > 0) {
-        let SalesOrderLinesGet = [];
-
-        for (let i = 0; i < salesOrderLine.length; i++) {
-          const line = salesOrderLine[i];
-
-          //Entidad Extendida
-          const SalesOrderLinesItem = axios.post(
-            `${tenant}/data/CDSSalesOrderLinesV2?cross-company=true`,
-            {
-              SalesOrderNumber: salesOrder.SalesOrderNumber,
-              SalesOrderNumberHeader: salesOrder.SalesOrderNumber,
-              dataAreaId: salesOrder.dataAreaId,
-              ...line,
-            },
-            { headers: { Authorization: "Bearer " + token } }
-          );
-
-          SalesOrderLinesGet.push(SalesOrderLinesItem);
+     
+      await axios
+      .post(
+        `${tenant}/data/CDSSalesOrderLinesV2?cross-company=true`,
+        {
+          SalesOrderNumber: salesOrder.SalesOrderNumber,
+          SalesOrderNumberHeader: salesOrder.SalesOrderNumber,
+          dataAreaId: salesOrder.dataAreaId,
+          ...salesOrderLine,
+        },
+        { headers: { Authorization: "Bearer " + token } }
+      )
+      .catch(function (error) {
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.error &&
+          error.response.data.error.innererror &&
+          error.response.data.error.innererror.message
+        ) {
+          throw new Error(error.response.data.error.innererror.message);
+        } else if (error.request) {
+          throw new Error(error.request);
+        } else {
+          throw new Error("Error", error.message);
         }
-
-        await axios
-          .all(SalesOrderLinesGet)
-          .then(
-            axios.spread(async (...responses2) => {
-              for (let i = 0; i < responses2.length; i++) {
-                const element = responses2[i];
-                _salesOrderLine.push(element.data);
-              }
-            })
-          )
-          .catch(function (error) {
-            if (
-              error.response &&
-              error.response.data &&
-              error.response.data.error &&
-              error.response.data.error.innererror &&
-              error.response.data.error.innererror.message
-            ) {
-              console.log(error.response.data.error.innererror);
-              throw new Error(error.response.data.error.innererror.message);
-            } else if (error.request) {
-              throw new Error(error.request);
-            } else {
-              throw new Error("Error", error.message);
-            }
-          });
-      }
+      });
 
       let _salesOrder;
 
-      if (salesOrder) {
+      if (salesOrder && salesOrderLineIndex === salesOrderLineLength) {
         //Entidad Extendida
-        _salesOrder = await axios
+        await axios
           .post(
             `${tenant}/api/services/GAB_SalesOrderConfirmationSG/GAB_SalesOrderConfirmationService/confirmSO`,
             {
@@ -147,12 +124,17 @@ async function connect() {
           });
       }
 
-      _salesOrder = _salesOrder.data;
-
       channel.ack(msg);
     });
   } catch (error) {
-    console.error(error);
+    const conn = await amqp.connect(rabbitSettings);
+    const channel = await conn.createChannel();
+    
+    await channel.assertQueue("SalesOrderLinesErrors");
+    await channel.sendToQueue("SalesOrderLinesErrors", Buffer.from(JSON.stringify({
+      body: body,
+      error: error.message
+    })));
   }
 }
 
