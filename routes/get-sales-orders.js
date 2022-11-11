@@ -2,6 +2,8 @@ let express = require("express");
 let router = express.Router();
 const client = require("../bin/redis-client");
 const axios = require("axios");
+const moment = require("moment");
+require("moment/locale/es");
 
 router.post("/", async (req, res) => {
   try {
@@ -83,11 +85,14 @@ router.post("/", async (req, res) => {
       });
     }
 
+    const firstDayMonth = moment().format("YYYY-MM-01T00:00:00-05:00");
+
     const selectEntity1Fields =
       "&$select=SalesOrderNumber,dataAreaId,DefaultShippingWarehouseId,DefaultShippingSiteId,OrderingCustomerAccountNumber,CurrencyCode,DeliveryAddressDescription,DeliveryAddressCountryRegionId,SalesOrderName,OrderCreationDateTime,DocumentStatus,SalesOrderStatus";
     //Entidad Extendida
+
     const Entity1 = axios.get(
-      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderTakerPersonnelNumber eq '${customer}'${selectEntity1Fields}${
+      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderTakerPersonnelNumber eq '${customer}' and (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Confirmation' or DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'None' or DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'PackingSlip' or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Invoice' and OrderCreationDateTime gt ${firstDayMonth}) or (SalesOrderStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}))${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
