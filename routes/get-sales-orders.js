@@ -18,8 +18,9 @@ router.post("/", async (req, res) => {
       req.query.environment || (req.body && req.body.environment);
     const testMode = req.query.testMode || (req.body && req.body.testMode);
     const userEmail = req.query.userEmail || (req.body && req.body.userEmail);
-
     const customer = req.query.customer || (req.body && req.body.customer);
+    const userCompany =
+      req.query.userCompany || (req.body && req.body.userCompany);
 
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
@@ -42,6 +43,9 @@ router.post("/", async (req, res) => {
 
     if (!customer || customer.length === 0)
       throw new Error("customer is Mandatory");
+    
+    if (!userCompany || userCompany.length === 0)
+      throw new Error("userCompany is Mandatory");
 
     if (!client.isOpen) client.connect();
 
@@ -92,7 +96,7 @@ router.post("/", async (req, res) => {
     //Entidad Extendida
 
     const Entity1 = axios.get(
-      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=OrderTakerPersonnelNumber eq '${customer}' and ((DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Confirmation' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'None' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'PackingSlip' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Invoice' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}) or (SalesOrderStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}))${selectEntity1Fields}${
+      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=dataAreaId eq '${userCompany}' and OrderTakerPersonnelNumber eq '${customer}' and ((DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Confirmation' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'None' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'PackingSlip' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Invoice' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}) or (SalesOrderStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}))${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
@@ -113,7 +117,7 @@ router.post("/", async (req, res) => {
           for (let i = 0; i < SalesOrderHeaders.length; i++) {
             //Entidad Extendida
             const SalesOrderLinesItem = axios.get(
-              `${tenant}/data/CDSSalesOrderLinesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=SalesOrderNumber eq '${SalesOrderHeaders[i].SalesOrderNumber}'${selectEntity2Fields}`,
+              `${tenant}/data/CDSSalesOrderLinesV2?$format=application/json;odata.metadata=none&cross-company=true&$filter=dataAreaId eq '${userCompany}' and SalesOrderNumber eq '${SalesOrderHeaders[i].SalesOrderNumber}'${selectEntity2Fields}`,
               { headers: { Authorization: "Bearer " + token } }
             );
 
