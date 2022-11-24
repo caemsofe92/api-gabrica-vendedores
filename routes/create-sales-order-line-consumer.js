@@ -73,6 +73,7 @@ async function connect() {
           SalesOrderNumberHeader: salesOrder.SalesOrderNumber,
           dataAreaId: salesOrder.dataAreaId,
           ...salesOrderLine,
+          OrderedSalesQuantity: salesOrderLine.OrderedSalesQuantity ? salesOrderLine.OrderedSalesQuantity : 0
         },
         { headers: { Authorization: "Bearer " + token } }
       )
@@ -84,6 +85,7 @@ async function connect() {
           error.response.data.error.innererror &&
           error.response.data.error.innererror.message
         ) {
+          console.log(error.response.data.error.innererror);
           throw new Error(error.response.data.error.innererror.message);
         } else if (error.request) {
           throw new Error(error.request);
@@ -126,6 +128,7 @@ async function connect() {
 
       channel.ack(msg);
     });
+   
   } catch (error) {
     const conn = await amqp.connect(rabbitSettings);
     const channel = await conn.createChannel();
