@@ -23,6 +23,8 @@ async function connect() {
     channel.consume("SalesOrderLines", async (msg) => {
       const body = JSON.parse(msg.content.toString());
 
+     
+
       const tenantUrl = body && body.tenantUrl;
       const clientId = body && body.clientId;
       const clientSecret = body && body.clientSecret;
@@ -32,6 +34,10 @@ async function connect() {
       const salesOrderLine = body && body.salesOrderLine;
       const salesOrderLineIndex = body && body.salesOrderLineIndex;
       const salesOrderLineLength = body && body.salesOrderLineLength;
+
+      if(salesOrderLine.SalesPrice === null){
+        salesOrderLine.SalesPrice = 0;
+      }
 
       if (!client.isOpen) client.connect();
 
