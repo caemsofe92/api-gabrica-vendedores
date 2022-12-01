@@ -23,7 +23,7 @@ async function connect() {
     channel.consume("SalesOrderLines", async (msg) => {
       const body = JSON.parse(msg.content.toString());
 
-     
+      channel.ack(msg);
 
       const tenantUrl = body && body.tenantUrl;
       const clientId = body && body.clientId;
@@ -50,7 +50,8 @@ async function connect() {
             `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}&resource=${tenant}/`,
             { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
           )
-          .catch(function (error) {
+          .catch(async function (error) {
+            await channel.assertQueue("SalesOrderTokenErrors");
             if (
               error.response &&
               error.response.data &&
@@ -58,10 +59,22 @@ async function connect() {
               error.response.data.error.innererror &&
               error.response.data.error.innererror.message
             ) {
+              await channel.sendToQueue("SalesOrderTokenErrors", Buffer.from(JSON.stringify({
+                body: body,
+                error: error.response.data.error.innererror
+              })));
               throw new Error(error.response.data.error.innererror.message);
             } else if (error.request) {
+              await channel.sendToQueue("SalesOrderTokenErrors", Buffer.from(JSON.stringify({
+                body: body,
+                error: error
+              })));
               throw new Error(error.request);
             } else {
+              await channel.sendToQueue("SalesOrderTokenErrors", Buffer.from(JSON.stringify({
+                body: body,
+                error: error
+              })));
               throw new Error("Error", error.message);
             }
           });
@@ -83,7 +96,8 @@ async function connect() {
         },
         { headers: { Authorization: "Bearer " + token } }
       )
-      .catch(function (error) {
+      .catch(async function (error) {
+        await channel.assertQueue("SalesOrderLinesErrors");
         if (
           error.response &&
           error.response.data &&
@@ -91,11 +105,22 @@ async function connect() {
           error.response.data.error.innererror &&
           error.response.data.error.innererror.message
         ) {
-          console.log(error.response.data.error.innererror);
+          await channel.sendToQueue("SalesOrderLinesErrors", Buffer.from(JSON.stringify({
+            body: body,
+            error: error.response.data.error.innererror
+          })));
           throw new Error(error.response.data.error.innererror.message);
         } else if (error.request) {
+          await channel.sendToQueue("SalesOrderLinesErrors", Buffer.from(JSON.stringify({
+            body: body,
+            error: error
+          })));
           throw new Error(error.request);
         } else {
+          await channel.sendToQueue("SalesOrderLinesErrors", Buffer.from(JSON.stringify({
+            body: body,
+            error: error
+          })));
           throw new Error("Error", error.message);
         }
       });
@@ -115,7 +140,8 @@ async function connect() {
               headers: { Authorization: "Bearer " + token },
             }
           )
-          .catch(function (error) {
+          .catch(async function (error) {
+            await channel.assertQueue("SalesOrderTableErrors");
             if (
               error.response &&
               error.response.data &&
@@ -123,16 +149,26 @@ async function connect() {
               error.response.data.error.innererror &&
               error.response.data.error.innererror.message
             ) {
+              await channel.sendToQueue("SalesOrderTableErrors", Buffer.from(JSON.stringify({
+                body: body,
+                error: error.response.data.error.innererror
+              })));
               throw new Error(error.response.data.error.innererror.message);
             } else if (error.request) {
+              await channel.sendToQueue("SalesOrderTableErrors", Buffer.from(JSON.stringify({
+                body: body,
+                error: error
+              })));
               throw new Error(error.request);
             } else {
+              await channel.sendToQueue("SalesOrderTableErrors", Buffer.from(JSON.stringify({
+                body: body,
+                error: error
+              })));
               throw new Error("Error", error.message);
             }
           });
       }
-
-      channel.ack(msg);
     });
    
   } catch (error) {

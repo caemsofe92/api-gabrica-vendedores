@@ -21,6 +21,9 @@ router.post("/", async (req, res) => {
     const customer = req.query.customer || (req.body && req.body.customer);
     const userCompany =
       req.query.userCompany || (req.body && req.body.userCompany);
+    const SalesDistrict =
+      req.query.SalesDistrict || (req.body && req.body.SalesDistrict);
+
 
     if (!tenantUrl || tenantUrl.length === 0)
       throw new Error("tenantUrl is Mandatory");
@@ -96,11 +99,13 @@ router.post("/", async (req, res) => {
     //Entidad Extendida
 
     const Entity1 = axios.get(
-      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=dataAreaId eq '${userCompany}' and OrderTakerPersonnelNumber eq '${customer}' and ((DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Confirmation' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'None' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'PackingSlip' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Invoice' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}) or (SalesOrderStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}))${selectEntity1Fields}${
+      `${tenant}/data/SalesOrderHeadersV2?$format=application/json;odata.metadata=none&cross-company=true&$count=true&$filter=dataAreaId eq '${userCompany}' and SalesUnitId eq '${SalesDistrict}' and ((DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Confirmation' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'None' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'PackingSlip' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled') or (DocumentStatus eq Microsoft.Dynamics.DataEntities.DocumentStatus'Invoice' and SalesOrderStatus ne Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}) or (SalesOrderStatus eq Microsoft.Dynamics.DataEntities.SalesStatus'Canceled' and OrderCreationDateTime gt ${firstDayMonth}))${selectEntity1Fields}${
         testMode ? "&$top=5" : ""
       }`,
       { headers: { Authorization: "Bearer " + token } }
     );
+
+    
 
     const selectEntity2Fields =
       "&$select=SalesOrderNumber,SalesUnitSymbol,OrderedInventoryStatusId,ShippingSiteId,DeliveryAddressLocationId,DeliveryTermsId,LineDescription,ShippingWarehouseId,OrderedSalesQuantity,LineAmount,SalesPriceQuantity,SalesPrice,ProductName,DeliveryAddressStreet,DeliveryAddressCountryRegionId,DeliveryAddressDescription,ProductNumber,SalesProductCategoryHierarchyName,SalesProductCategoryName,SalesOrderNumberHeader,CurrencyCode";
