@@ -253,7 +253,7 @@ router.post("/", async (req, res) => {
                 };
 
                 await client.set(entity + userCompany, JSON.stringify(reply), {
-                  EX: 86400,
+                  EX: 3600,
                 });
                 return res.json({
                   result: true,
