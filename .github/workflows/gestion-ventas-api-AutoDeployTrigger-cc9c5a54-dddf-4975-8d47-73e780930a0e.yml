@@ -1,0 +1,60 @@
+name: Trigger auto deployment for gestion-ventas-api
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/gestion-ventas-api-AutoDeployTrigger-cc9c5a54-dddf-4975-8d47-73e780930a0e.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:      
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: multitenantappsacr.azurecr.io
+          username: ${{ secrets.GESTIONVENTASAPI_REGISTRY_USERNAME }}
+          password: ${{ secrets.GESTIONVENTASAPI_REGISTRY_PASSWORD }}
+
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: multitenantappsacr.azurecr.io/gestion-ventas-api:${{ github.sha }}
+          file: ./Dockerfile
+          context: ./
+
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.GESTIONVENTASAPI_AZURE_CREDENTIALS }}
+
+
+      - name: Deploy to containerapp
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az config set extension.use_dynamic_install=yes_without_prompt
+            az containerapp registry set -n gestion-ventas-api -g gabrica-power-app-gestion-ventas --server multitenantappsacr.azurecr.io --username  ${{ secrets.GESTIONVENTASAPI_REGISTRY_USERNAME }} --password ${{ secrets.GESTIONVENTASAPI_REGISTRY_PASSWORD }}
+            az containerapp update -n gestion-ventas-api -g gabrica-power-app-gestion-ventas --image multitenantappsacr.azurecr.io/gestion-ventas-api:${{ github.sha }}
